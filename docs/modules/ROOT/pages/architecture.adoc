@@ -1,0 +1,72 @@
+= Architecture
+:author: Harmen Weber
+:email: harmen.weber@gmail.com
+
+== System Context
+
+The Echo system collaborates with the following personas and systems:
+
+image::diagrams/system-context.png[]
+
+Software Engineer::
+Software engineers interact with Echo system to profit from its services.
+For example, they create endpoints that capture HTTP requests so that they can analyse them (see xref:user-journeys.adoc[]).
+They interact with the system via the following interfaces:
+
+* user interface
+* REST API
+* GraphQL API
+
+Identity Provider::
+The Echo system must ensure that a software engineer only sees the data that belongs to him.
+For example, a software engineer must only see and manage his own endpoints.
+And a software engineer must only see the requests captured by his own endpoints.
+To ensure that, the Echo system must identify software engineers.
+To identify software engineers, the system uses identity providers like GitHub, Google, or Facebook.
+
+Data Provider::
+Software engineers instruct their data providers to call endpoints in the Echo system.
+The endpoints in the Echo system capture the data providers' requests.
+The software engineers then analyse the captured requests.
+Data providers are unknown to the Echo system.
+
+== System Components
+
+The Echo system consists of the following components:
+
+image::diagrams/system-components.png[]
+
+User Interface::
+Software engineers access and manage their data via the user interface.
+For example, they can manage their endpoints and analyse the HTTP requests that were captured by their endpoints.
+The user interface uses the GraphQL API to read and write data in the Echo system.
+The user interface authenticates the software engineers using identity providers.
+
+GraphQL API::
+The GraphQL API allows querying data, mutating data and subscribing to data in the Echo system.
+The Echo user interface uses the GraphQL API to query, display and mutate data.
+Software engineers can use the GraphQL API directly to access and manage their data in the Echo system.
++
+The GraphQL API interacts directly with:
+
+* the database that stores the data
+* the PubSub server to publish events across multiple instances of the GraphQL API
+
+REST API::
+The REST API exposes the software engineers' endpoints.
+When a data provider pushes data to a software engineer's endpoint, the data provider executes a HTTP request against the REST API.
++
+Further, the REST API allows querying and mutating data in the Echo system.
+Software engineers can use the REST API directly to access and manage their data in the Echo system.
++
+The REST API interacts directly with:
+
+* the database that stores the data
+* the PubSub server to publish events across multiple instances of the GraphQL API
+
+Database::
+The database component stores the software engineers' data like endpoints and capture requests.
+
+PubSub Server::
+When multiple GraphQL API instances run concurrently, a PubSub server is required.
+The PubSub server is also required if the GraphQL API component and the REST API component are not running within the same application.

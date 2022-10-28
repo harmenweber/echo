@@ -1,0 +1,54 @@
+= Implementation Plan
+:author: Harmen Weber
+:email: harmen.weber@gmail.com
+
+The https://www.jpattonassociates.com/story-mapping/[user story mappings] below illustrate the implementation plan.
+
+== Capturing HTTP requests
+
+The user journey xref:user-journeys.adoc#_capturing_http_requests[Capturing HTTP Requests] (in [.nord14]#green#) consists of four tasks (in [.nord10]#blue#):
+
+1. *Authenticate User*: +
+The software engineer must be able to authenticate.
+2. *Create Endpoint*: +
+The software engineer must be able to create an endpoint.
+3. *Call Endpoint*: +
+The data provider must be able to call the endpoint
+4. *Query Captured Requests*: +
+The software engineer must be able to query the requests captured by his endpoints.
+
+Below the tasks (in [.nord10]#blue#) are the sub-tasks (in [.nord13]#yellow#) that must be implemented in order to complete the a task.
+
+.User Story Map - Capturing HTTP requests
+image::capturing-http-requests-story-map.drawio.svg[]
+
+The sub-tasks are separated in milestones using horizontal rulers:
+
+1. *Milestone 1*: +
+This milestone focuses on the basic functionality of the service.
+With Milestone 1, we will be able to create endpoints, call these endpoints and query captured HTTP requests.
+The service provides this functionality over a REST API.
+The service captures the requests that were executed against the endpoints.
+However, the service does not persist these requests.
+Instead, the captured requests are stored in memory only.
+The service is not yet aware of users.
+There is no authentication or authorization of any kind.
+
+2. *Milestone 2*: +
+This milestone focuses on the implementation of the GraphQL API.
+With the implementation of this milestone, we can create endpoints and query captured requests.
+Further, we can subscribe for captured requests.
+
+3. *Milestone 3:* +
+This milestone focuses on authentication and authorization.
+Users have to authenticate.
+Endpoints get associated to the user that creates them.
+Users can only query captured requests for their own endpoints.
+
+4. *Milestone 4:* +
+This milestone focuses on the persistence of the data.
+With the implementation of this milestone, the data is no longer held in memory.
+Instead, the data will be persisted to some data store.
+
+5. *Milestone 5:* +
+This milestone focuses on the implementation of a user interface.

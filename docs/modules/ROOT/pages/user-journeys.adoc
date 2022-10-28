@@ -1,0 +1,49 @@
+= User Journeys
+:author: Harmen Weber
+:email: harmen.weber@gmail.com
+
+Below are the user journeys / domain stories that drive the development of Echo.
+
+== Capturing HTTP requests
+
+[quote,"You. Me. We integrators have all been there."]
+____
+As a software engineer that needs to integrate some data provider, I want to capture the provider's data even before I start the integration so that I can review and better understand the data.
+____
+
+Let's say you have to integrate a data provider.
+Eventually, the data provider will push data to one of your endpoints.
+However, your endpoint isn't ready yet, since you haven't started the integration yet.
+You read the data provider's specification.
+Syntactically, you know what to expect - assuming the spec was still up-to-date.
+Unfortunately, the spec focuses mostly on syntax and hardly on semantics.
+So, you ask some questions.
+But even after you got your answers, there might still be surprises.
+For example, the data might get pushed in an unexpected order.
+Or, some optional fields might be empty in cases you expected them to be present.
+Or vice versa.
+
+To avoid such surprises, it would be helpful if you saw some real data, even before you started the integration.
+Echo can help you with that as follows:
+
+1. You, a software engineer, want to integrate a data provider.
+2. You can create en Echo endpoint that captures data in seconds.
+3. You share the Echo endpoint info with the data provider.
+4. The data provider starts pushing data to your Echo endpoint.
+5. You analyse the data captured by the Echo endpoint using Echo's API or UI.
+
+.Domain Story - Capturing HTTP requests
+image::diagrams/domain-story.png[]
+
+[NOTE]
+====
+You might find yourself also in the role of the data provider.
+A software engineer wants to integrate your service.
+She/He doesn't have an endpoint ready yet.
+Nevertheless, she/he would like to see already some real data.
+It would correct her/his expectations and speed up the integration.
+
+Tell her/him to create an Echo data capturing endpoint.
+Tell her/him to share the endpoint info with you.
+Start pushing data to that endpoint so she/he can see some real data.
+====

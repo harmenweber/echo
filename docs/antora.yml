@@ -1,0 +1,13 @@
+name: echo
+title: echo.harmen.ch
+version: ~
+asciidoc:
+  attributes:
+    sectnums: ''
+    sectanchors: ''
+    autofit-option: ''
+    icons: font
+    icon-set: far
+    experimental: ''
+nav:
+  - modules/ROOT/nav.adoc

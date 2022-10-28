@@ -1,0 +1,7 @@
+= README
+:author: Harmen Weber
+:email: harmen.weber@gmail.com
+
+Echo provides endpoints that capture HTTP requests.
+It is meant as a helpful service for integration projects.
+Please refer to the https://docs.harmen.ch/echo/index.html[documentation] to learn more.

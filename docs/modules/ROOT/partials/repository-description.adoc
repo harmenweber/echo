@@ -1,0 +1,4 @@
+// Don't use any variables in the repository description.
+// If you do, it cannot be included in other components like ch-harmen-docs.
+Echo provides endpoints that capture HTTP requests.
+It is meant as a helpful service for integration projects.

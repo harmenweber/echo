@@ -3,8 +3,7 @@
 :email: harmen.weber@gmail.com
 :keywords: Echo, HTTP request recording
 
-Echo provides endpoints that capture HTTP requests.
-It is meant as a helpful service for integration projects.
+include::partial$repository-description.adoc[]
 
 To get a better idea about Echo, take a look at the xref:user-journeys.adoc[] that drive the development of this service.
 

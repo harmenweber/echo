@@ -6,7 +6,7 @@ The https://www.jpattonassociates.com/story-mapping/[user story mappings] below 
 
 == Capturing HTTP requests
 
-The user journey xref:user-journeys.adoc#_capturing_http_requests[Capturing HTTP Requests] (in [.nord14]#green#) consists of four tasks (in [.nord10]#blue#):
+The user journey xref:user-journeys.adoc#_capturing_http_requests[Capturing HTTP Requests] ([.nord14]#green# box) consists of four tasks ([.nord10]#blue# boxes):
 
 1. *Authenticate User*: +
 The software engineer must be able to authenticate.
@@ -17,7 +17,8 @@ The data provider must be able to call the endpoint
 4. *Query Captured Requests*: +
 The software engineer must be able to query the requests captured by his endpoints.
 
-Below the tasks (in [.nord10]#blue#) are the sub-tasks (in [.nord13]#yellow#) that must be implemented in order to complete the a task.
+Below the tasks are the sub-tasks ([.nord13]#yellow# boxes).
+To complete a task, its sub-tasks must be implemented.
 
 .User Story Map - Capturing HTTP requests
 image::capturing-http-requests-story-map.drawio.svg[]

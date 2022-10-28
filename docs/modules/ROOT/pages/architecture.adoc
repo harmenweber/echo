@@ -68,5 +68,7 @@ Database::
 The database component stores the software engineers' data like endpoints and capture requests.
 
 PubSub Server::
-When multiple GraphQL API instances run concurrently, a PubSub server is required.
-The PubSub server is also required if the GraphQL API component and the REST API component are not running within the same application.
+When a data provider pushes some data to an Echo endpoint exposed by the REST API, then the GraphQL API must publish a corresponding event to subscribed clients.
+If the REST API and the GraphQL API are not running within the same application, a PubSub server is required.
++
+The PubSub server is also required if multiple GraphQL API instances run concurrently.

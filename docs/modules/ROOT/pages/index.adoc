@@ -4,6 +4,12 @@
 :keywords: Echo, HTTP request recording
 
 Echo provides endpoints that capture HTTP requests.
-It is meant as a helpful tool in integration projects.
+It is meant as a helpful service for integration projects.
 
 To get a better idea about Echo, take a look at the xref:user-journeys.adoc[] that drive the development of this service.
+
+[NOTE]
+====
+Please note that I basically just gave birth to this project.
+So far, I have only documented want I intend to do.
+====

@@ -9,6 +9,6 @@ To get a better idea about Echo, take a look at the xref:user-journeys.adoc[] th
 
 [NOTE]
 ====
-Please note that I basically just gave birth to this project.
+Please note that I just gave birth to this project.
 So far, I have only documented want I intend to do.
 ====

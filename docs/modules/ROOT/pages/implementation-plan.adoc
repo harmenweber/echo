@@ -52,4 +52,8 @@ With the implementation of this milestone, the data is no longer held in memory.
 Instead, the data will be persisted to some data store.
 
 5. *Milestone 5:* +
+This milestone focuses on the scalability of the system.
+When we instantiate multiple instances of the GraphQL API and REST API, the instances must handle events over a shared PubSub service.
+
+6. *Milestone 6:* +
 This milestone focuses on the implementation of a user interface.

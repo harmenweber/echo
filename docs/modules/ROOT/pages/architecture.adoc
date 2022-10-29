@@ -67,8 +67,8 @@ The REST API interacts directly with:
 Database::
 The database component stores the software engineers' data like endpoints and capture requests.
 
-PubSub Server::
-When a data provider pushes some data to an Echo endpoint exposed by the REST API, then the GraphQL API must publish a corresponding event to subscribed clients.
-If the REST API and the GraphQL API are not running within the same application, a PubSub server is required.
-+
-The PubSub server is also required if multiple GraphQL API instances run concurrently.
+PubSub Service::
+GraphQL API clients can subscribe to events.
+When a data provider calls an Echo endpoint, the GraphQL API will publish an event to subscribed clients.
+To ensure that all subscribed clients receive all the events they subscribed for, the system must use a PubSub service.
+The GraphQL API and the REST API must share the same PubSub service.

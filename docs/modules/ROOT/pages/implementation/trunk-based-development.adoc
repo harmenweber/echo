@@ -1,0 +1,44 @@
+= Trunk Based Development
+:author: Harmen Weber
+:email: harmen.weber@gmail.com
+
+This repository follows the https://trunkbaseddevelopment.com/[trunk based development] approach.
+In general:
+
+* Every feature and fix gets its own new branch of the main branch.
+* Branches get rebased frequently.
+* Branches have a short lifespan.
+
+The goal is to ensure minimal divergence between development streams and to avoid large and error-prone merge actions.
+
+Branches get merged back into the main branch using fast-forward merges.
+Fast-forward merges:
+
+* ensure a clean, linear and understandable history of the repository
+* remove the risk of introducing a bug due to an incorrect merge
+
+[IMPORTANT]
+====
+To ensure fast-forward merges only, execute the following command in the root of the repository:
+
+[source,shell]
+----
+git config merge.ff only
+----
+====
+
+== Steps to merge a branch back into the main branch
+
+Before the merge
+
+1. Rebase the branch.
+2. Ensure the branch builds successfully.
+
+When merging:
+
+* Squash the commits on the branch into a single commit with a commit message that adheres to the https://www.conventionalcommits.org[conventional commits].
+
+[NOTE]
+====
+The reason why we need to adhere to conventional commits is documented in the section about xref:implementation/semantic-version.adoc[].
+====

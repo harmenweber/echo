@@ -2,3 +2,7 @@
 * xref:user-journeys.adoc[]
 * xref:architecture.adoc[]
 * xref:implementation-plan.adoc[]
+* Implementation
+** xref:implementation/trunk-based-development.adoc[]
+** xref:implementation/monorepo.adoc[]
+** xref:implementation/semantic-version.adoc[]

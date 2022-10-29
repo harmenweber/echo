@@ -1,0 +1,15 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  trigger-ch-harmen-docs-build:
+    name: Trigger ch-harmen-docs build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger ch-harmen-docs build
+        run: gh workflow run build.yml --repo harmenweber/ch-harmen-docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.TRIGGER_CH_HARMEN_DOCS_BUILD_TOKEN }}

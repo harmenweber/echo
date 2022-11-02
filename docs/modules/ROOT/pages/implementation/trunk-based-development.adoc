@@ -29,7 +29,7 @@ git config merge.ff only
 
 == Steps to merge a branch back into the main branch
 
-Before the merge
+Before the merge:
 
 1. Rebase the branch.
 2. Ensure the branch builds successfully.
@@ -40,5 +40,5 @@ When merging:
 
 [NOTE]
 ====
-The reason why we need to adhere to conventional commits is documented in the section about xref:implementation/semantic-version.adoc[].
+The reason why we need to adhere to conventional commits is documented in the section about xref:implementation/semantic-versioning.adoc[].
 ====

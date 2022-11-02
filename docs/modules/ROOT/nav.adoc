@@ -5,4 +5,4 @@
 * Implementation
 ** xref:implementation/trunk-based-development.adoc[]
 ** xref:implementation/monorepo.adoc[]
-** xref:implementation/semantic-version.adoc[]
+** xref:implementation/semantic-versioning.adoc[]

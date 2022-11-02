@@ -2,4 +2,16 @@
 :author: Harmen Weber
 :email: harmen.weber@gmail.com
 
-_To be written…_
+This repository is a monorepo for the Echo project.
+The repository will contain all applications, libraries and documentation related to the Echo project.
+
+The reasons why I choose a monorepo are the following:
+
+* Reuse existing project and CI setup.
+* No need to publish versioned packages since all consumers are in the same repository.
+* Everything works together at every commit.
+There's no such thing as a breaking change when you fix everything in the same commit.
+
+As monorepo tool, I picked https://nx.dev[Nx] by Nrwl.
+I chose the Nx plugin _@jnxplus/nx-boot-maven_ to add Spring Boot and Maven multi-module project support.
+The applications and libraries that get generated look ok, I only have to change a few minor things to support xref:implementation/semantic-versioning.adoc[] the way I want.

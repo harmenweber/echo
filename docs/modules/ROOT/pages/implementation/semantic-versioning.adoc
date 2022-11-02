@@ -1,0 +1,54 @@
+= Semantic Versioning
+:author: Harmen Weber
+:email: harmen.weber@gmail.com
+
+The Echo project adheres to Semantic Versioning.
+Semantic Versioning is a software versioning scheme.
+In this scheme, the version numbers and the way the version numbers change convey meaning about:
+
+* the maturity of the underlying code
+* the nature of change from one version to the next
+
+To give a brief, non-exhaustive overview:
+
+* A normal version number must take the form X.Y.Z where X, Y, and Z are non-negative integers.
+* X is the major version, Y is the minor version, and Z is the patch version.
+* Major version zero (0.y.z) is for initial development.
+Anything MAY change at any time.
+The public API SHOULD NOT be considered stable.
+* Version 1.0.0 defines the public API.
+The way in which the version number is incremented after this release is dependent on this public API and how it changes.
+* Patch version Z (x.y.Z | x > 0) MUST be incremented if only backwards compatible bug fixes are introduced.
+* Minor version Y (x.Y.z | x > 0) MUST be incremented if new, backwards compatible functionality is introduced to the public API.
+* Major version X (X.y.z | X > 0) MUST be incremented if any backwards incompatible changes are introduced to the public API.
+
+Please refer to the https://semver.org[Semantic Versioning] documentation to get the full picture.
+
+There are tools that support Semantic Versioning.
+Given a well-define syntax for commit messages.
+And given that syntax conveys whether the commit contains breaking or non-breaking bug fixes or functionality.
+When all commit messages in a repository adhere to this syntax, then a tool could
+
+1. derive the correct version number according to Semantic Versioning from the commit messages
+2. automatically apply that version during the CI build
+
+Example syntax for commit messages are:
+
+* https://www.conventionalcommits.org[Conventional Commits]
+* https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit[Angular Commit Message Format]
+
+There is a wide range of tooling that read commit messages that follow these conventions and calculate semantic versions.
+This repository uses https://github.com/semantic-release/semantic-release[semantic-release].
+
+'''
+
+* What is semantic version?
+* What does that mean in our case?
+* How can we achieve that?
+** Conceptually what does it mean.
+What are the steps that must happen?
+** Concretely, how can we achieve it?
+*** Semantic release or semantic version packages on npm
+*** How the maven poms really don't help to achieve this.
+*** The resource that describes how to get a multi-module maven project to have its version configured at a single place: https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions].
+*** As the resource above states, one must configure the https://www.mojohaus.org/flatten-maven-plugin/[Flatten Maven Plugin] to ensure that the pom files of the artifacts have the `${revision}` placeholder replaced with the actual version.

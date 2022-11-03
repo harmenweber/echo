@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'docs/**'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
 
 jobs:
   ci-affected:
@@ -25,12 +32,3 @@ jobs:
       - run: npx nx affected --target=lint --parallel=3
       - run: npx nx affected --target=build --parallel=3
       - run: npx nx affected --target=test --ci --code-coverage
-
-  trigger-ch-harmen-docs-build:
-    name: Trigger ch-harmen-docs build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger ch-harmen-docs build
-        run: gh workflow run build.yml --repo harmenweber/ch-harmen-docs
-        env:
-          GITHUB_TOKEN: ${{ secrets.TRIGGER_CH_HARMEN_DOCS_BUILD_TOKEN }}

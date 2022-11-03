@@ -20,7 +20,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <revision>0.0.1-SNAPSHOT</revision>
+    <revision>0.0.1</revision>
     <java.version>17</java.version>
     <kotlin.version>1.6.21</kotlin.version>
   </properties>

@@ -37,8 +37,3 @@ Before the merge:
 When merging:
 
 * Squash the commits on the branch into a single commit with a commit message that adheres to the https://www.conventionalcommits.org[conventional commits].
-
-[NOTE]
-====
-The reason why we need to adhere to conventional commits is documented in the section about xref:implementation/semantic-versioning.adoc[].
-====

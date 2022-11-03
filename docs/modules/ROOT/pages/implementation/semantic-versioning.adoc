@@ -37,18 +37,59 @@ Example syntax for commit messages are:
 * https://www.conventionalcommits.org[Conventional Commits]
 * https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit[Angular Commit Message Format]
 
-There is a wide range of tooling that read commit messages that follow these conventions and calculate semantic versions.
-This repository uses https://github.com/semantic-release/semantic-release[semantic-release].
+== Automated Semantic Versioning
 
-'''
+There is a wide range of tooling that automate semantic versioning based on the commit messages that follow these conventions.
 
-* What is semantic version?
-* What does that mean in our case?
-* How can we achieve that?
-** Conceptually what does it mean.
-What are the steps that must happen?
-** Concretely, how can we achieve it?
-*** Semantic release or semantic version packages on npm
-*** How the maven poms really don't help to achieve this.
-*** The resource that describes how to get a multi-module maven project to have its version configured at a single place: https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions].
-*** As the resource above states, one must configure the https://www.mojohaus.org/flatten-maven-plugin/[Flatten Maven Plugin] to ensure that the pom files of the artifacts have the `${revision}` placeholder replaced with the actual version.
+Be warned though, not all of these tools were meant to be used within a monorepo and therefore cannot be used within a monorepo.
+A lot of these tools assume that only a single version must be maintained for the entire repository.
+These tools consider all commits on the git repo when calculating the next version for the repo.
+However, in a monorepo you most probably have multiple versions to maintain.
+
+For example: Given a monorepo with two applications _A_ and _B_.
+When you commit a breaking change to application _A_ without changing anything to application _B_, you most probably don't want application _B_ to get its next major version.
+Only application _A_ that got the breaking change should receive the next major version.
+Application _B_ that didn't receive any changes, should not get a new version.
+
+Further, a lot of these tools didn't have Maven projects in mind.
+In most cases, they just bump the version in a `package.json` file.
+So, you might need to copy the bumped version from some `package.json` file to your Maven `pom.xml` files.
+
+=== Nx Plugin @jscutlery/semver
+
+The Nx plugin `@jscutlery/semver` is monorepo aware.
+It supports two modes:
+
+Independent Mode (default)::
+Allows multiple projects to be versioned independently.
+This way you release only what you want and consumers don't get updates they don't need.
+This allows small, rapid and incremental adoption of your packages.
+
+Synced Mode::
+Allows multiple projects to be versioned in a synced/locked mode.
+Use this if you want to automatically tie all package versions together.
+This mode is useful when you are working with only one product.
+One issue with this approach is that a major change in any project will result in all projects having a new major version.
+
+Unfortunately, the tool bumps the version, generates the changelog, commits both, creates a tag and pushes everything without letting me hook into between these steps.
+I need a way to copy the bumped version from the `package.json` to the `pom.xml` files before everything gets committed.
+Or at least before everything gets pushed.
+
+So, sad but true, I don't yet have an automated semantic versioning in place.
+That means I still have to do the semantic versioning by hand.
+
+== Manual Semantic Versioning
+
+At the moment, I intend to have two deployable applications:
+
+* *echo-api*: includes the GraphQL API and REST API components (built with Maven)
+* *echo-ui*: includes the Echo UI component (not built with Maven)
+
+These two applications will have their own, independent version.
+The libraries within these applications will share the same version as the application itself.
+For example, the library echo-rest-controllers that holds all the REST controllers will share the same version as the application echo-api.
+This setup is good enough for this simple project and I don't have to make it more complicated than necessary.
+
+Since I intend to have a single version for the echo-api application and all its libraries, I want to change that version at a single place.
+Therefore, I apply the technique described on the page https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions].
+As a result, I can change the version of the echo-api application and all its libraries by changing the `revision` property in the root `pom.xml` file.

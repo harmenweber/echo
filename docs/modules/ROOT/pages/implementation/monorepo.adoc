@@ -14,4 +14,6 @@ There's no such thing as a breaking change when you fix everything in the same c
 
 As monorepo tool, I picked https://nx.dev[Nx] by Nrwl.
 I chose the Nx plugin _@jnxplus/nx-boot-maven_ to add Spring Boot and Maven multi-module project support.
-The applications and libraries that get generated look ok, I only have to change a few minor things to support xref:implementation/semantic-versioning.adoc[] the way I want.
+The generated applications and libraries look good.
+The only thing I adjust is how these maven modules are versioned.
+For more information, read xref:implementation/semantic-versioning.adoc[].

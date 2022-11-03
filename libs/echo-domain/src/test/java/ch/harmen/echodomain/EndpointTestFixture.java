@@ -15,5 +15,4 @@ public final class EndpointTestFixture {
   public String getRandomApiKey() {
     return UUID.randomUUID().toString();
   }
-
 }

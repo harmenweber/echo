@@ -14,5 +14,4 @@ final class EndpointTest {
     final var endpoint2 = new Endpoint(endpoint1.id(), endpoint1.apiKey());
     assertThat(endpoint2).isEqualTo(endpoint1);
   }
-
 }

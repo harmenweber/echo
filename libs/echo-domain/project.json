@@ -1,0 +1,22 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "echo-domain",
+  "projectType": "library",
+  "sourceRoot": "libs/echo-domain/src",
+  "targets": {
+    "build": {
+      "executor": "@jnxplus/nx-boot-maven:build",
+      "outputs": ["libs/echo-domain/target"]
+    },
+    "lint": {
+      "executor": "@jnxplus/nx-boot-maven:lint",
+      "options": {
+        "linter": "checkstyle"
+      }
+    },
+    "test": {
+      "executor": "@jnxplus/nx-boot-maven:test"
+    }
+  },
+  "tags": []
+}

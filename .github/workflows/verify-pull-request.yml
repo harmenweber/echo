@@ -1,7 +1,7 @@
-name: Continuous Integration
+name: Verify Pull Request
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -23,14 +23,5 @@ jobs:
       - run: npx nx workspace-lint
       - run: npx nx format:check
       - run: npx nx affected --target=lint --parallel=3
-      - run: npx nx affected --target=test --parallel=3 --ci --code-coverage
       - run: npx nx affected --target=build --parallel=3
-
-  trigger-ch-harmen-docs-build:
-    name: Trigger ch-harmen-docs build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger ch-harmen-docs build
-        run: gh workflow run build.yml --repo harmenweber/ch-harmen-docs
-        env:
-          GITHUB_TOKEN: ${{ secrets.TRIGGER_CH_HARMEN_DOCS_BUILD_TOKEN }}
+      - run: npx nx affected --target=test --ci --code-coverage

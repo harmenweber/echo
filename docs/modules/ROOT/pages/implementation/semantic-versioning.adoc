@@ -1,0 +1,95 @@
+= Semantic Versioning
+:author: Harmen Weber
+:email: harmen.weber@gmail.com
+
+The Echo project adheres to Semantic Versioning.
+Semantic Versioning is a software versioning scheme.
+In this scheme, the version numbers and the way the version numbers change convey meaning about:
+
+* the maturity of the underlying code
+* the nature of change from one version to the next
+
+To give a brief, non-exhaustive overview:
+
+* A normal version number must take the form X.Y.Z where X, Y, and Z are non-negative integers.
+* X is the major version, Y is the minor version, and Z is the patch version.
+* Major version zero (0.y.z) is for initial development.
+Anything MAY change at any time.
+The public API SHOULD NOT be considered stable.
+* Version 1.0.0 defines the public API.
+The way in which the version number is incremented after this release is dependent on this public API and how it changes.
+* Patch version Z (x.y.Z | x > 0) MUST be incremented if only backwards compatible bug fixes are introduced.
+* Minor version Y (x.Y.z | x > 0) MUST be incremented if new, backwards compatible functionality is introduced to the public API.
+* Major version X (X.y.z | X > 0) MUST be incremented if any backwards incompatible changes are introduced to the public API.
+
+Please refer to the https://semver.org[Semantic Versioning] documentation to get the full picture.
+
+There are tools that support Semantic Versioning.
+Given a well-define syntax for commit messages.
+And given that syntax conveys whether the commit contains breaking or non-breaking bug fixes or functionality.
+When all commit messages in a repository adhere to this syntax, then a tool could
+
+1. derive the correct version number according to Semantic Versioning from the commit messages
+2. automatically apply that version during the CI build
+
+Example syntax for commit messages are:
+
+* https://www.conventionalcommits.org[Conventional Commits]
+* https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit[Angular Commit Message Format]
+
+== Automated Semantic Versioning
+
+There is a wide range of tooling that automate semantic versioning based on the commit messages that follow these conventions.
+
+Be warned though, not all of these tools were meant to be used within a monorepo and therefore cannot be used within a monorepo.
+A lot of these tools assume that only a single version must be maintained for the entire repository.
+These tools consider all commits on the git repo when calculating the next version for the repo.
+However, in a monorepo you most probably have multiple versions to maintain.
+
+For example: Given a monorepo with two applications _A_ and _B_.
+When you commit a breaking change to application _A_ without changing anything to application _B_, you most probably don't want application _B_ to get its next major version.
+Only application _A_ that got the breaking change should receive the next major version.
+Application _B_ that didn't receive any changes, should not get a new version.
+
+Further, a lot of these tools didn't have Maven projects in mind.
+In most cases, they just bump the version in a `package.json` file.
+So, you might need to copy the bumped version from some `package.json` file to your Maven `pom.xml` files.
+
+=== Nx Plugin @jscutlery/semver
+
+The Nx plugin `@jscutlery/semver` is monorepo aware.
+It supports two modes:
+
+Independent Mode (default)::
+Allows multiple projects to be versioned independently.
+This way you release only what you want and consumers don't get updates they don't need.
+This allows small, rapid and incremental adoption of your packages.
+
+Synced Mode::
+Allows multiple projects to be versioned in a synced/locked mode.
+Use this if you want to automatically tie all package versions together.
+This mode is useful when you are working with only one product.
+One issue with this approach is that a major change in any project will result in all projects having a new major version.
+
+Unfortunately, the tool bumps the version, generates the changelog, commits both, creates a tag and pushes everything without letting me hook into between these steps.
+I need a way to copy the bumped version from the `package.json` to the `pom.xml` files before everything gets committed.
+Or at least before everything gets pushed.
+
+So, sad but true, I don't yet have an automated semantic versioning in place.
+That means I still have to do the semantic versioning by hand.
+
+== Manual Semantic Versioning
+
+At the moment, I intend to have two deployable applications:
+
+* *echo-api*: includes the GraphQL API and REST API components (built with Maven)
+* *echo-ui*: includes the Echo UI component (not built with Maven)
+
+These two applications will have their own, independent version.
+The libraries within these applications will share the same version as the application itself.
+For example, the library echo-rest-controllers that holds all the REST controllers will share the same version as the application echo-api.
+This setup is good enough for this simple project and I don't have to make it more complicated than necessary.
+
+Since I intend to have a single version for the echo-api application and all its libraries, I want to change that version at a single place.
+Therefore, I apply the technique described on the page https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions].
+As a result, I can change the version of the echo-api application and all its libraries by changing the `revision` property in the root `pom.xml` file.

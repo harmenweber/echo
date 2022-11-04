@@ -41,55 +41,86 @@ Example syntax for commit messages are:
 
 There is a wide range of tooling that automate semantic versioning based on the commit messages that follow these conventions.
 
-Be warned though, not all of these tools were meant to be used within a monorepo and therefore cannot be used within a monorepo.
+Be warned though, not all of these tools were meant to be used within a monorepo and therefore should not be used within a monorepo.
 A lot of these tools assume that only a single version must be maintained for the entire repository.
-These tools consider all commits on the git repo when calculating the next version for the repo.
+These tools consider all commits on the git repository to calculate the next version.
 However, in a monorepo you most probably have multiple versions to maintain.
 
-For example: Given a monorepo with two applications _A_ and _B_.
-When you commit a breaking change to application _A_ without changing anything to application _B_, you most probably don't want application _B_ to get its next major version.
-Only application _A_ that got the breaking change should receive the next major version.
-Application _B_ that didn't receive any changes, should not get a new version.
+For example, in Echo's monorepo, the REST API component and the GraphQL API component should each have their own version.
+The REST API consists of:
 
-Further, a lot of these tools didn't have Maven projects in mind.
-In most cases, they just bump the version in a `package.json` file.
-So, you might need to copy the bumped version from some `package.json` file to your Maven `pom.xml` files.
+* echo-rest-api-app (app)
+* echo-rest-api-controllers (lib)
+* echo-rest-api-model (lib)
 
-=== Nx Plugin @jscutlery/semver
+A breaking change in any of these modules is considered a breaking change to the REST API and must bump up the major version of the REST API.
 
-The Nx plugin `@jscutlery/semver` is monorepo aware.
-It supports two modes:
+The GraphQL API consists of:
 
-Independent Mode (default)::
-Allows multiple projects to be versioned independently.
-This way you release only what you want and consumers don't get updates they don't need.
-This allows small, rapid and incremental adoption of your packages.
+* echo-graphql-api-app (app)
+* echo-graphql-api-model (lib)
+* echo-graphql-api-resolvers (lib)
 
-Synced Mode::
-Allows multiple projects to be versioned in a synced/locked mode.
-Use this if you want to automatically tie all package versions together.
-This mode is useful when you are working with only one product.
-One issue with this approach is that a major change in any project will result in all projects having a new major version.
+A breaking change in any of these modules is considered a breaking change to the GraphQL API and must bump up the major version of the GraphQL API.
 
-Unfortunately, the tool bumps the version, generates the changelog, commits both, creates a tag and pushes everything without letting me hook into between these steps.
-I need a way to copy the bumped version from the `package.json` to the `pom.xml` files before everything gets committed.
-Or at least before everything gets pushed.
+However, a breaking change to the REST API must not bump up the major version of the GraphQL API and vice versa.
 
-So, sad but true, I don't yet have an automated semantic versioning in place.
-That means I still have to do the semantic versioning by hand.
+.Separate Versions for REST API and GraphQL API
+image::diagrams/automated-semantic-versioning-challenge.png[]
 
-== Manual Semantic Versioning
+To achieve this, the following problems must be solved.
 
-At the moment, I intend to have two deployable applications:
+1. The tool that calculates the semantic versions must:
+a. understand which group of modules share the same version
+b. calculate the version for each group of modules separately
+c. take only those commits into account that are relevant to these group of modules
 
-* *echo-api*: includes the GraphQL API and REST API components (built with Maven)
-* *echo-ui*: includes the Echo UI component (not built with Maven)
+2. Once that tool calculated the semantic versions, these groups of modules must be released with those versions.
 
-These two applications will have their own, independent version.
-The libraries within these applications will share the same version as the application itself.
-For example, the library echo-rest-controllers that holds all the REST controllers will share the same version as the application echo-api.
-This setup is good enough for this simple project and I don't have to make it more complicated than necessary.
+Both problems still need a solution.
+But for the second problem, the technique described in https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions] might be helpful.
+After applying that technique, all Maven modules have the same version that can be set by a single property: `revision`.
+The default value of the revision property is some snapshot version.
+Once an application like echo-rest-api-app must be released with a newly calculated semantic version, the following commands will build that application with that new semantic version:
 
-Since I intend to have a single version for the echo-api application and all its libraries, I want to change that version at a single place.
-Therefore, I apply the technique described on the page https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions].
-As a result, I can change the version of the echo-api application and all its libraries by changing the `revision` property in the root `pom.xml` file.
+[source,shell]
+----
+./mvnw clean install                 \  <1>
+  --projects :echo-rest-api-app      \  <2>
+  --batch-mode                       \  <3>
+  --also-make                        \  <4>
+  -Drevision=<new-semantic-version>  && <5>
+./mvnw package spring-boot:repackage \  <6>
+  --projects :echo-rest-api-app      \
+  --batch-mode                       \
+  --DskipTests                       \  <7>
+  -Drevision=<new-semantic-version>     <8>
+----
+
+<1> First, we have to clean and install the application and all its dependencies.
+<2> Specifies the project/module/application we want to build.
+<3> Ensures that Maven doesn't log every downloaded kB.
+<4> Tells Maven to clean and install also all the dependencies of the project.
+<5> Sets the revision property to the newly calculated semantic version.
+Thanks to https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions], Maven now builds the project and its dependencies with this version.
+<6> Now, we have to repackage the application.
+We have to do that in a second Maven call.
+We cannot add the `spring-boot:repackage` goal to the first Maven call.
+If we did, Maven would try to execute the `spring-boot:repackage` goal also on the dependencies.
+Since the dependencies are not Spring Boot applications, the command would fail.
+Note that the `spring-boot:repackage` goal cannot be executed separately.
+It must be executed along with at least the `package` goal, or else it fails.
+<7> The first Maven call already executed the tests.
+Therefore, we can skip the tests in the second Maven call.
+<8> Sets the revision property to the newly calculated semantic version.
+
+The Maven commands above build an application of choice (including its dependencies) with a version of choice.
+These commands could be part of a `release` target in the applications' `project.json`.
+That way, one could release affected applications in the Nx workspace with a command as follows:
+
+[source,shell]
+----
+npx nx affected --target=release
+----
+
+_To be continued…_

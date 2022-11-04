@@ -11,14 +11,20 @@
     <version>${revision}</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>echo-domain</artifactId>
-  <name>echo-domain</name>
+  <artifactId>echo-rest-api-app</artifactId>
+
+  <name>echo-rest-api-app</name>
   <description>This project was generated with nx-boot-maven</description>
 
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.harmen.echo</groupId>
+      <artifactId>echo-rest-api-controllers</artifactId>
     </dependency>
 
     <dependency>

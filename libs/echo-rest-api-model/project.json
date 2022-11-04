@@ -1,12 +1,12 @@
 {
-  "name": "echo-domain",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "echo-rest-api-model",
   "projectType": "library",
-  "sourceRoot": "libs/echo-domain/src",
+  "sourceRoot": "libs/echo-rest-api-model/src",
   "targets": {
     "build": {
       "executor": "@jnxplus/nx-boot-maven:build",
-      "outputs": ["libs/echo-domain/target"]
+      "outputs": ["libs/echo-rest-api-model/target"]
     },
     "lint": {
       "executor": "@jnxplus/nx-boot-maven:lint",

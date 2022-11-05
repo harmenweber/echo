@@ -24,10 +24,12 @@ The way in which the version number is incremented after this release is depende
 
 Please refer to the https://semver.org[Semantic Versioning] documentation to get the full picture.
 
+== Automated Semantic Versioning
+
 There are tools that support Semantic Versioning.
 Given a well-define syntax for commit messages.
 And given that syntax conveys whether the commit contains breaking or non-breaking bug fixes or functionality.
-When all commit messages in a repository adhere to this syntax, then a tool could
+When all commit messages in a repository adhere to this syntax, then a tool can
 
 1. derive the correct version number according to Semantic Versioning from the commit messages
 2. automatically apply that version during the CI build
@@ -37,14 +39,15 @@ Example syntax for commit messages are:
 * https://www.conventionalcommits.org[Conventional Commits]
 * https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit[Angular Commit Message Format]
 
-== Automated Semantic Versioning
-
-There is a wide range of tooling that automate semantic versioning based on the commit messages that follow these conventions.
+There is a wide range of tooling that automate semantic versioning based on commit messages that follow these conventions.
 
 Be warned though, not all of these tools were meant to be used within a monorepo and therefore should not be used within a monorepo.
 A lot of these tools assume that only a single version must be maintained for the entire repository.
 These tools consider all commits on the git repository to calculate the next version.
 However, in a monorepo you most probably have multiple versions to maintain.
+
+Then, there are the tools that are monorepo aware.
+But even those might not do want you want.
 
 For example, in Echo's monorepo, the REST API component and the GraphQL API component should each have their own version.
 The REST API consists of:
@@ -68,7 +71,7 @@ However, a breaking change to the REST API must not bump up the major version of
 .Separate Versions for REST API and GraphQL API
 image::diagrams/automated-semantic-versioning-challenge.png[]
 
-To achieve this, the following problems must be solved.
+To achieve this, the following is required:
 
 1. The tool that calculates the semantic versions must:
 a. understand which group of modules share the same version
@@ -77,8 +80,12 @@ c. take only those commits into account that are relevant to these group of modu
 
 2. Once that tool calculated the semantic versions, these groups of modules must be released with those versions.
 
-Both problems still need a solution.
-But for the second problem, the technique described in https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions] might be helpful.
+The Echo project is not the only project with these requirements.
+The need to version groups of modules was raised by others.
+For example, the Nx plugin @jscutlery/semver started https://github.com/jscutlery/semver/discussions/98[a discussion] on this topic in February 2021.
+
+Unfortunately, I couldn't find a tool that meets the requirements mentioned in point 1 above.
+If I had such a tool, then could resolve point 2 with the technique described in https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions].
 After applying that technique, all Maven modules have the same version that can be set by a single property: `revision`.
 The default value of the revision property is some snapshot version.
 Once an application like echo-rest-api-app must be released with a newly calculated semantic version, the following commands will build that application with that new semantic version:
@@ -123,4 +130,5 @@ That way, one could release affected applications in the Nx workspace with a com
 npx nx affected --target=release
 ----
 
-_To be continued…_
+However, as long as I didn't find a semantic versioning tool that allows me to configure groups of modules that share the same version, I cannot automate semantic versioning for the Echo project.
+At least not the way I want.

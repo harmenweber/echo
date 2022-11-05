@@ -130,5 +130,5 @@ That way, one could release affected applications in the Nx workspace with a com
 npx nx affected --target=release
 ----
 
-However, as long as I didn't find a semantic versioning tool that allows me to configure groups of modules that share the same version, I cannot automate semantic versioning for the Echo project.
+However, as long as I don't find a semantic versioning tool that allows me to configure groups of modules that share the same version, I cannot automate semantic versioning for the Echo project.
 At least not the way I want.

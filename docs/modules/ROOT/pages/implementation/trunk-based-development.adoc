@@ -17,16 +17,6 @@ Fast-forward merges:
 * ensure a clean, linear and understandable history of the repository
 * remove the risk of introducing a bug due to an incorrect merge
 
-[IMPORTANT]
-====
-To ensure fast-forward merges only, execute the following command in the root of the repository:
-
-[source,shell]
-----
-git config merge.ff only
-----
-====
-
 == Steps to merge a branch back into the main branch
 
 Before the merge:

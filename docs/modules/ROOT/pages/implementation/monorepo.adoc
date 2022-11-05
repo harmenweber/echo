@@ -12,8 +12,78 @@ The reasons why I choose a monorepo are the following:
 * Everything works together at every commit.
 There's no such thing as a breaking change when you fix everything in the same commit.
 
-As monorepo tool, I picked https://nx.dev[Nx] by Nrwl.
+As monorepo tool, I started with https://nx.dev[Nx] by Nrwl.
 I chose the Nx plugin _@jnxplus/nx-boot-maven_ to add Spring Boot and Maven multi-module project support.
 The generated applications and libraries look good.
 The only thing I adjust is how these maven modules are versioned.
+I applied the technique described in https://maven.apache.org/maven-ci-friendly.html[Maven CI Friendly Versions].
+That way all Maven modules have the same version that can be set by setting the `revision` property.
 For more information, read xref:implementation/semantic-versioning.adoc[].
+
+[WARNING]
+====
+Using Nx and the Nx plugin _@jnxplus/nx-boot-maven_ for a monorepo with a Maven multi-module project doesn't feel right, and I'm close to get rid of Nx.
+
+When I run `nx affected:build`, I see from the log output that multiple threads are building the same module concurrently.
+I recognized that because the build was randomly failing.
+While the first thread generated the `.flattened-pom.xml`, the second thread deleted the file.
+Next, the first thread tried to install that file into the local repository but failed because the file didn't exist anymore.
+
+Here is the corresponding log output:
+
+[source]
+----
+[INFO] Scanning for projects...
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ---------------------< ch.harmen.echo:echo-parent >---------------------
+[INFO] Building echo-parent 0.0.1-SNAPSHOT
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- maven-clean-plugin:3.2.0:clean (default-clean) @ echo-parent ---
+[INFO]
+[INFO] ---------------------< ch.harmen.echo:echo-parent >---------------------
+[INFO] Building echo-parent 0.0.1-SNAPSHOT
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO]
+[INFO] --- maven-clean-plugin:3.2.0:clean (default-clean) @ echo-parent ---
+[INFO] Deleting /home/runner/work/echo/echo/target
+[INFO]
+[INFO] --- flatten-maven-plugin:1.3.0:clean (flatten.clean) @ echo-parent ---
+[INFO]
+[INFO] --- flatten-maven-plugin:1.3.0:clean (flatten.clean) @ echo-parent ---
+[INFO]
+[INFO] --- flatten-maven-plugin:1.3.0:flatten (flatten) @ echo-parent ---
+[INFO] Generating flattened POM of project ch.harmen.echo:echo-parent:pom:0.0.1-SNAPSHOT...
+[INFO]
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ echo-parent ---
+[INFO] Deleting /home/runner/work/echo/echo/target/.flattened-pom.xml
+[INFO]
+[INFO] --- flatten-maven-plugin:1.3.0:flatten (flatten) @ echo-parent ---
+[INFO] Generating flattened POM of project ch.harmen.echo:echo-parent:pom:0.0.1-SNAPSHOT...
+[INFO] Installing /home/runner/work/echo/echo/target/.flattened-pom.xml to /home/runner/.m2/repository/ch/harmen/echo/echo-parent/0.0.1-SNAPSHOT/echo-parent-0.0.1-SNAPSHOT.pom
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.754 s
+[INFO] Finished at: 2022-11-05T20:31:34Z
+[INFO] ------------------------------------------------------------------------
+Error:  Failed to execute goal org.apache.maven.plugins:maven-install-plugin:2.5.2:install (default-install) on project echo-parent: Failed to install artifact ch.harmen.echo:echo-parent:pom:0.0.1-SNAPSHOT: /home/runner/work/echo/echo/target/.flattened-pom.xml (No such file or directory) -> [Help 1]
+----
+
+I could disable the deletion of the `.flattened-pom.xml`, but that wouldn't solve the problem.
+I would still have multiple threads that are building the same things concurrently and therefore might interfere with each other.
+
+I could set `--parallel=1` (the default is `--parallel=3`) to avoid the problem, but it is sad to go all serial.
+
+Maven's reactor has a much better understanding of Maven multi-module projects.
+Therefore, the reactor can build Maven multi-module projects a lot better.
+If I tell Maven to build my multi-module project with multiple threads.
+The reactor will build every module exactly once and go parallel wherever the dependency tree allows it.
+
+So, I'm tempted to exclude Maven projects from the Nx workspace.
+Then, I define a dedicated GitHub Action workflow for every deployable artifact in my Maven projects.
+With https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushpull_requestpull_request_targetpathspaths-ignore[including and excluding paths], I ensure that these workflows only run, if relevant sources changed.
+Including and excluding paths are like the poor man's `nx affected`.
+The only sad thing I see for this solution is that I would maintain the dependencies of my deployable Maven artifacts twice. Once in the `pom.xml` files and once in the including paths in the workflow files.
+====

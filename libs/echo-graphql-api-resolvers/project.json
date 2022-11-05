@@ -1,12 +1,12 @@
 {
-  "name": "echo-domain",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "echo-graphql-api-resolvers",
   "projectType": "library",
-  "sourceRoot": "libs/echo-domain/src",
+  "sourceRoot": "libs/echo-graphql-api-resolvers/src",
   "targets": {
     "build": {
       "executor": "@jnxplus/nx-boot-maven:build",
-      "outputs": ["libs/echo-domain/target"]
+      "outputs": ["libs/echo-graphql-api-resolvers/target"]
     },
     "lint": {
       "executor": "@jnxplus/nx-boot-maven:lint",

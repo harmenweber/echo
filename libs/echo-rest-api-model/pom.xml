@@ -11,8 +11,8 @@
     <version>${revision}</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>echo-domain</artifactId>
-  <name>echo-domain</name>
+  <artifactId>echo-rest-api-model</artifactId>
+  <name>echo-rest-api-model</name>
   <description>This project was generated with nx-boot-maven</description>
 
   <dependencies>

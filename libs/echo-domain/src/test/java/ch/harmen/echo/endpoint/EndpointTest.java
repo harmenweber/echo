@@ -1,4 +1,4 @@
-package ch.harmen.echodomain;
+package ch.harmen.echo.endpoint;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,7 +11,11 @@ final class EndpointTest {
   @Test
   void equals() {
     final var endpoint1 = this.testFixture.create();
-    final var endpoint2 = new Endpoint(endpoint1.id(), endpoint1.apiKey());
+    final var endpoint2 = new Endpoint(
+      endpoint1.id(),
+      endpoint1.owner(),
+      endpoint1.apiKey()
+    );
     assertThat(endpoint2).isEqualTo(endpoint1);
   }
 }

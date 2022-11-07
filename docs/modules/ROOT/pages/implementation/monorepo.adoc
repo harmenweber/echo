@@ -22,7 +22,7 @@ For more information, read xref:implementation/semantic-versioning.adoc[].
 
 [WARNING]
 ====
-Using Nx and the Nx plugin _@jnxplus/nx-boot-maven_ for a monorepo with a Maven multi-module project doesn't feel right, and I'm close to get rid of Nx.
+Using Nx and the Nx plugin _@jnxplus/nx-boot-maven_ for a monorepo with a Maven multi-module project doesn't feel right, and I'm close to exclude the Maven projects from the Nx workspace.
 
 When I run `nx affected:build`, I see from the log output that multiple threads are building the same module concurrently.
 I recognized that because the build was randomly failing.

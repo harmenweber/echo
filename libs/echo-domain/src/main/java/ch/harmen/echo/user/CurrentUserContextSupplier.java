@@ -1,8 +1,5 @@
 package ch.harmen.echo.user;
 
-import org.springframework.stereotype.Component;
-
-@Component
 public class CurrentUserContextSupplier {
 
   static final UserContext ANONYMOUS_USER_CONTEXT = new UserContext(

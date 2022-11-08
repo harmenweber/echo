@@ -2,9 +2,7 @@ package ch.harmen.echo.endpoint;
 
 import ch.harmen.echo.user.CurrentUserContextSupplier;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
 
-@Component
 class EndpointFactory {
 
   private final EndpointIdFactory endpointIdFactory;

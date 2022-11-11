@@ -1,42 +1,46 @@
 package ch.harmen.echo.endpoint;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 class EndpointRepository {
 
-  private final Map<String, Map<String, Endpoint>> endpointsByOwner = new HashMap<>();
+  private final ConcurrentMap<String, ConcurrentMap<String, Endpoint>> endpointsByOwner = new ConcurrentHashMap<>();
 
   Mono<Endpoint> save(final Endpoint endpoint) {
     return Mono.just(endpoint).doOnNext(this::addEndpointToMap);
   }
 
-  private void addEndpointToMap(Endpoint it) {
-    this.endpointsByOwner.compute(
-        it.owner(),
-        (key, value) -> {
-          final Map<String, Endpoint> endpoints = Optional
-            .ofNullable(value)
-            .orElseGet(HashMap::new);
-          endpoints.put(it.id(), it);
-          return endpoints;
-        }
-      );
+  private void addEndpointToMap(final Endpoint endpoint) {
+    final String owner = endpoint.owner();
+    this.endpointsByOwner.putIfAbsent(owner, new ConcurrentHashMap<>());
+    this.endpointsByOwner.get(owner).put(endpoint.id(), endpoint);
   }
 
   Mono<Void> delete(final Endpoint endpoint) {
     return Mono
-      .just(endpoint.owner())
-      .mapNotNull(this.endpointsByOwner::get)
+      .just(endpoint)
+      .mapNotNull(this::removeEndpointFromMap)
       .switchIfEmpty(
         createEndpointNotFoundError(endpoint.owner(), endpoint.id())
       )
-      .map(endpoints -> endpoints.remove(endpoint.id()))
       .then();
+  }
+
+  /**
+   * Removes the endpoint from the map.
+   *
+   * @param endpoint The endpoint that must be removed.
+   * @return The removed endpoint, or {@code null} if the endpoint was not in the map.
+   */
+  private Endpoint removeEndpointFromMap(final Endpoint endpoint) {
+    final String owner = endpoint.owner();
+    this.endpointsByOwner.putIfAbsent(owner, new ConcurrentHashMap<>());
+    return this.endpointsByOwner.get(owner).remove(endpoint.id());
   }
 
   private static <T> Mono<T> createEndpointNotFoundError(

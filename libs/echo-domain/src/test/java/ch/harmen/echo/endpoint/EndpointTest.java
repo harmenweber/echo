@@ -9,13 +9,9 @@ final class EndpointTest {
   private final EndpointTestFixture testFixture = new EndpointTestFixture();
 
   @Test
-  void equals() {
-    final var endpoint1 = this.testFixture.create();
-    final var endpoint2 = new Endpoint(
-      endpoint1.id(),
-      endpoint1.owner(),
-      endpoint1.apiKey()
-    );
-    assertThat(endpoint2).isEqualTo(endpoint1);
+  void copyConstructor() {
+    final var original = this.testFixture.create();
+    final var copy = new Endpoint(original);
+    assertThat(copy).isEqualTo(original);
   }
 }

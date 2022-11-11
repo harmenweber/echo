@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public class EndpointService {
 
-  static final int MAX_ENDPOINTS_PER_OWNER = 100;
+  static final int MAX_ENDPOINTS_PER_OWNER = 10;
 
   private final EndpointFactory endpointFactory;
   private final EndpointRepository endpointRepository;
@@ -25,18 +25,30 @@ public class EndpointService {
   }
 
   public Mono<Endpoint> create() {
-    final String owner = this.currentUserContextSupplier.get().id();
-    return this.endpointRepository.countByOwner(owner)
-      .doOnNext(endpointCount -> {
-        if (endpointCount >= MAX_ENDPOINTS_PER_OWNER) {
-          throw new EndpointQuotaReachedException(
-            owner,
-            MAX_ENDPOINTS_PER_OWNER,
-            endpointCount
-          );
-        }
+    return Mono
+      .just(this.currentUserContextSupplier.get().id())
+      .zipWhen(this.endpointRepository::countByOwner)
+      .doOnNext(ownerAndEndpointCountTuple -> {
+        assertEndpointQuoteNotReachedYet(
+          ownerAndEndpointCountTuple.getT1(),
+          ownerAndEndpointCountTuple.getT2()
+        );
       })
-      .then(this.endpointRepository.save(this.endpointFactory.create()));
+      .then(Mono.fromSupplier(this.endpointFactory::create))
+      .flatMap(this.endpointRepository::save);
+  }
+
+  private static void assertEndpointQuoteNotReachedYet(
+    String owner,
+    int endpointCount
+  ) {
+    if (endpointCount >= MAX_ENDPOINTS_PER_OWNER) {
+      throw new EndpointQuotaReachedException(
+        owner,
+        MAX_ENDPOINTS_PER_OWNER,
+        endpointCount
+      );
+    }
   }
 
   public Mono<Void> delete(final Endpoint endpoint) {
@@ -75,5 +87,11 @@ public class EndpointService {
     Objects.requireNonNull(owner);
     Objects.requireNonNull(id);
     return this.endpointRepository.findByOwnerAndId(owner, id);
+  }
+
+  public Mono<Endpoint> getByOwnerAndId(final String owner, final String id) {
+    Objects.requireNonNull(owner);
+    Objects.requireNonNull(id);
+    return this.endpointRepository.getByOwnerAndId(owner, id);
   }
 }

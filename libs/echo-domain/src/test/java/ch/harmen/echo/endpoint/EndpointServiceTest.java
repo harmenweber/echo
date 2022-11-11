@@ -38,20 +38,20 @@ final class EndpointServiceTest {
 
   @BeforeEach
   void deleteAllExistingEndpoints() {
-    String currentUserId = this.currentUserContextSupplier.get().id();
-    Flux<Void> deletions =
-      this.endpointService.findByOwner(
-          currentUserId,
-          0,
-          EndpointService.MAX_ENDPOINTS_PER_OWNER
-        )
-        .flatMap(this.endpointService::delete);
-    StepVerifier.create(deletions).verifyComplete();
+    final String currentUserId = this.currentUserContextSupplier.get().id();
+
+    this.endpointService.findByOwner(
+        currentUserId,
+        0,
+        EndpointService.MAX_ENDPOINTS_PER_OWNER
+      )
+      .flatMap(this.endpointService::delete)
+      .subscribe();
   }
 
   @Test
   void create_returnsEndpointWithOwnerEqualToCurrentUser() {
-    String currentUserId = this.currentUserContextSupplier.get().id();
+    final String currentUserId = this.currentUserContextSupplier.get().id();
 
     final Mono<Endpoint> endpoint = this.endpointService.create();
 
@@ -66,7 +66,8 @@ final class EndpointServiceTest {
     final int limit = EndpointService.MAX_ENDPOINTS_PER_OWNER;
 
     Mono<Integer> endpointIds = Flux
-      .fromStream(Stream.generate(this.endpointService::create).limit(limit))
+      .fromStream(Stream.generate(this.endpointService::create))
+      .take(limit)
       .flatMap(Function.identity())
       .map(Endpoint::id)
       .collect(Collectors.toSet())
@@ -80,7 +81,8 @@ final class EndpointServiceTest {
     final int limit = EndpointService.MAX_ENDPOINTS_PER_OWNER;
 
     Mono<Integer> endpointApiKeys = Flux
-      .fromStream(Stream.generate(this.endpointService::create).limit(limit))
+      .fromStream(Stream.generate(this.endpointService::create))
+      .take(limit)
       .flatMap(Function.identity())
       .map(Endpoint::apiKey)
       .collect(Collectors.toSet())
@@ -111,12 +113,12 @@ final class EndpointServiceTest {
   void findByOwnerAndId() {
     final AtomicReference<Endpoint> createdEndpoint = new AtomicReference<>();
 
-    final Mono<Endpoint> endpoint =
-      this.endpointService.create().doOnNext(createdEndpoint::set);
-
-    final Mono<Endpoint> loadedEndpoint = endpoint.flatMap(it ->
-      this.endpointService.findByOwnerAndId(it.owner(), it.id())
-    );
+    final Mono<Endpoint> loadedEndpoint =
+      this.endpointService.create()
+        .doOnNext(createdEndpoint::set)
+        .flatMap(it ->
+          this.endpointService.findByOwnerAndId(it.owner(), it.id())
+        );
 
     StepVerifier
       .create(loadedEndpoint)
@@ -126,13 +128,51 @@ final class EndpointServiceTest {
 
   @Test
   void findByOwnerAndId_returnsEmptyIfEndpointDoesNotExist() {
+    final String owner = this.endpointTestFixture.getRandomOwner();
+    final String id = this.endpointTestFixture.getRandomId();
+
     final Mono<Endpoint> endpoint =
-      this.endpointService.findByOwnerAndId(
-          this.endpointTestFixture.getRandomOwner(),
-          this.endpointTestFixture.getRandomId()
-        );
+      this.endpointService.findByOwnerAndId(owner, id);
 
     StepVerifier.create(endpoint).verifyComplete();
+  }
+
+  @Test
+  void getByOwnerAndId() {
+    final AtomicReference<Endpoint> createdEndpoint = new AtomicReference<>();
+
+    final Mono<Endpoint> loadedEndpoint =
+      this.endpointService.create()
+        .doOnNext(createdEndpoint::set)
+        .flatMap(it -> this.endpointService.getByOwnerAndId(it.owner(), it.id())
+        );
+
+    StepVerifier
+      .create(loadedEndpoint)
+      .expectNextMatches(it -> Objects.equals(it, createdEndpoint.get()))
+      .verifyComplete();
+  }
+
+  @Test
+  void getByOwnerAndId_throwsException_ifEndpointDoesNotExist() {
+    final String owner = this.endpointTestFixture.getRandomOwner();
+    final String id = this.endpointTestFixture.getRandomId();
+
+    final Mono<Endpoint> loadedEndpoint =
+      this.endpointService.getByOwnerAndId(owner, id);
+
+    StepVerifier
+      .create(loadedEndpoint)
+      .expectErrorSatisfies(it -> {
+        assertThat(it).isInstanceOf(EndpointNotFoundException.class);
+        if (it instanceof EndpointNotFoundException exception) {
+          assertAll(
+            () -> assertThat(exception.getOwner()).isEqualTo(owner),
+            () -> assertThat(exception.getId()).isEqualTo(id)
+          );
+        }
+      })
+      .verify();
   }
 
   @Test
@@ -141,17 +181,21 @@ final class EndpointServiceTest {
     final AtomicReference<Endpoint> endpointLoadedBeforeDelete = new AtomicReference<>();
     final AtomicReference<Endpoint> endpointLoadedAfterDelete = new AtomicReference<>();
 
+    // Create and capture an endpoint.
     final Mono<Endpoint> createEndpointResult =
       this.endpointService.create().doOnNext(endpointCreated::set);
 
+    // Find and capture the endpoint.
     final Mono<Endpoint> findEndpointBeforeDeleteResult = createEndpointResult
       .flatMap(it -> this.endpointService.findByOwnerAndId(it.owner(), it.id()))
       .doOnNext(endpointLoadedBeforeDelete::set);
 
+    // Delete the endpoint.
     final Mono<Void> deleteEndpointResult = findEndpointBeforeDeleteResult.flatMap(
       this.endpointService::delete
     );
 
+    // Find and 'capture' the endpoint.
     final Mono<Endpoint> findEndpointAfterDeleteResult = deleteEndpointResult
       .flatMap(it -> {
         Endpoint endpointBeforeDelete = endpointLoadedBeforeDelete.get();
@@ -174,16 +218,16 @@ final class EndpointServiceTest {
 
   @Test
   void findByOwner_returnsEndpointsOrderedById() {
-    // We create 10 endpoints and capture the owner.
+    // Create some endpoints and capture the owner.
     final String owner = Flux
-      .<Mono<Endpoint>>generate(sink -> sink.next(this.endpointService.create())
-      )
-      .take(10)
+      .fromStream(Stream.generate(this.endpointService::create))
+      .take(EndpointService.MAX_ENDPOINTS_PER_OWNER)
       .flatMap(Function.identity())
       .map(Endpoint::owner)
       .blockFirst();
 
-    final List<Endpoint> firstHundredEndpoints =
+    // Fetch the owners endpoints.
+    final List<Endpoint> endpoints =
       this.endpointService.findByOwner(
           owner,
           0,
@@ -193,32 +237,33 @@ final class EndpointServiceTest {
         .blockOptional()
         .orElseGet(Collections::emptyList);
 
-    final List<Endpoint> sortedFirstHundredEndpoints = firstHundredEndpoints
+    // Sort the endpoints.
+    final List<Endpoint> sortedEndpoints = endpoints
       .stream()
       .sorted(Comparator.comparing(Endpoint::id))
       .toList();
 
+    // Assert the endpoints are equal to the sorted endpoints (meaning: they were already sorted).
     assertAll(
-      () -> assertThat(firstHundredEndpoints.size()).isGreaterThan(0),
-      () ->
-        assertThat(firstHundredEndpoints).isEqualTo(sortedFirstHundredEndpoints)
+      () -> assertThat(endpoints.size()).isGreaterThan(0),
+      () -> assertThat(endpoints).isEqualTo(sortedEndpoints)
     );
   }
 
   @Test
   void findByOwner_respectsPageSize() {
-    // We create 10 endpoints and capture the owner.
+    // Create some endpoints.
     final List<String> endpoints = Flux
       .fromStream(Stream.generate(this.endpointService::create))
       .flatMap(Function.identity())
-      .take(10)
+      .take(EndpointService.MAX_ENDPOINTS_PER_OWNER)
       .map(Endpoint::owner)
       .collectList()
       .blockOptional()
       .orElseGet(Collections::emptyList);
 
+    // Fetch the owner's endpoints.
     final String owner = endpoints.get(0);
-
     final List<Endpoint> firstFewEndpoints =
       this.endpointService.findByOwner(
           owner,
@@ -229,21 +274,22 @@ final class EndpointServiceTest {
         .blockOptional()
         .orElseGet(Collections::emptyList);
 
+    // Fetch again with another page size.
     int newPageSize = firstFewEndpoints.size() - 1;
-
     final List<Endpoint> firstFewMinusOneEndpoints =
       this.endpointService.findByOwner(owner, 0, newPageSize)
         .collectList()
         .blockOptional()
         .orElseGet(Collections::emptyList);
 
+    // Assert the service respected the page size.
     assertThat(firstFewMinusOneEndpoints.size()).isEqualTo(newPageSize);
   }
 
   @Test
   void findByOwner_respectsPage() {
-    // We create 10 endpoints and capture the owner.
-    final List<String> endpoints = Flux
+    // Create some endpoints.
+    final List<String> createdEndpoints = Flux
       .fromStream(Stream.generate(this.endpointService::create))
       .flatMap(Function.identity())
       .take(10)
@@ -252,9 +298,9 @@ final class EndpointServiceTest {
       .blockOptional()
       .orElseGet(Collections::emptyList);
 
-    final String owner = endpoints.get(0);
-
-    final List<Endpoint> firstFewEndpoints =
+    // Fetch the owner's endpoints.
+    final String owner = createdEndpoints.get(0);
+    final List<Endpoint> fetchedEndpoints =
       this.endpointService.findByOwner(
           owner,
           0,
@@ -264,24 +310,25 @@ final class EndpointServiceTest {
         .blockOptional()
         .orElseGet(Collections::emptyList);
 
-    final int newPageSize = firstFewEndpoints.size() / 2;
-
+    // Fetch the endpoints again. But this time in two pages.
+    final int newPageSize = fetchedEndpoints.size() / 2;
     final List<Endpoint> firstPage =
       this.endpointService.findByOwner(owner, 0, newPageSize)
         .collectList()
         .blockOptional()
         .orElseGet(Collections::emptyList);
-
     final List<Endpoint> secondPage =
       this.endpointService.findByOwner(owner, 1, newPageSize)
         .collectList()
         .blockOptional()
         .orElseGet(Collections::emptyList);
 
+    // Concatenate the first with the second page.
     ArrayList<Endpoint> concatenatedFirstAndSecondPage = Lists.newArrayList();
     concatenatedFirstAndSecondPage.addAll(firstPage);
     concatenatedFirstAndSecondPage.addAll(secondPage);
 
-    assertThat(concatenatedFirstAndSecondPage).isEqualTo(firstFewEndpoints);
+    // Assert that the concatenation is equal to originally fetched endpoints.
+    assertThat(concatenatedFirstAndSecondPage).isEqualTo(fetchedEndpoints);
   }
 }

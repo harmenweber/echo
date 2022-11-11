@@ -17,7 +17,7 @@ public class EndpointRestClient {
     this.webTestClient = Objects.requireNonNull(webTestClient);
   }
 
-  EndpointDto createEndpoint() {
+  EndpointDto create() {
     return this.webTestClient.post()
       .uri(EndpointRestController.ENDPOINTS_PATH)
       .exchange()
@@ -28,9 +28,7 @@ public class EndpointRestClient {
       .getResponseBody();
   }
 
-  <T> EntityExchangeResult<T> createEndpoint(
-    final Class<T> expectedResponseBodyType
-  ) {
+  <T> EntityExchangeResult<T> create(final Class<T> expectedResponseBodyType) {
     return this.webTestClient.post()
       .uri(EndpointRestController.ENDPOINTS_PATH)
       .exchange()
@@ -38,7 +36,7 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  <T> EntityExchangeResult<T> createEndpoint(
+  <T> EntityExchangeResult<T> create(
     final ParameterizedTypeReference<T> expectedResponseBodyType
   ) {
     return this.webTestClient.post()
@@ -48,7 +46,7 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  EntityExchangeResult<EndpointDto> getEndpoint(String id) {
+  EntityExchangeResult<EndpointDto> get(final String id) {
     return this.webTestClient.get()
       .uri(EndpointRestController.ENDPOINTS_PATH + "/{id}", id)
       .exchange()
@@ -56,21 +54,32 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  FluxExchangeResult<Void> deleteEndpoint(String id) {
+  <T> EntityExchangeResult<T> get(
+    final Class<T> expectedResponseBodyType,
+    final String id
+  ) {
+    return this.webTestClient.get()
+      .uri(EndpointRestController.ENDPOINTS_PATH + "/{id}", id)
+      .exchange()
+      .expectBody(expectedResponseBodyType)
+      .returnResult();
+  }
+
+  FluxExchangeResult<Void> delete(String id) {
     return this.webTestClient.delete()
       .uri(EndpointRestController.ENDPOINTS_PATH + "/{id}", id)
       .exchange()
       .returnResult(Void.class);
   }
 
-  EntityExchangeResult<List<EndpointDto>> getEndpoints(
+  EntityExchangeResult<List<EndpointDto>> get(
     final Optional<Integer> page,
     final Optional<Integer> pageSize
   ) {
-    return this.getEndpoints(ENDPOINT_DTO_LIST, page, pageSize);
+    return this.get(ENDPOINT_DTO_LIST, page, pageSize);
   }
 
-  <T> EntityExchangeResult<T> getEndpoints(
+  <T> EntityExchangeResult<T> get(
     final Class<T> expectedResponseBodyType,
     final Optional<Integer> page,
     final Optional<Integer> pageSize
@@ -87,7 +96,7 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  private <T> EntityExchangeResult<T> getEndpoints(
+  private <T> EntityExchangeResult<T> get(
     final ParameterizedTypeReference<T> expectedResponseBodyType,
     final Optional<Integer> page,
     final Optional<Integer> pageSize

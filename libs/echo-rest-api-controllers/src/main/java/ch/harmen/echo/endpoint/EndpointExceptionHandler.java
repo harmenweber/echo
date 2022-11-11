@@ -17,4 +17,13 @@ class EndpointExceptionHandler {
       .status(HttpStatus.UNAUTHORIZED)
       .body(List.of(exception.getMessage()));
   }
+
+  @ExceptionHandler(EndpointNotFoundException.class)
+  ResponseEntity<List<String>> handleEndpointNotFoundException(
+    EndpointNotFoundException exception
+  ) {
+    return ResponseEntity
+      .status(HttpStatus.NOT_FOUND)
+      .body(List.of(exception.getMessage()));
+  }
 }

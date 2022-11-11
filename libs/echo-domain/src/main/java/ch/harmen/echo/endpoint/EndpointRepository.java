@@ -12,27 +12,38 @@ class EndpointRepository {
   private final Map<String, Map<String, Endpoint>> endpointsByOwner = new HashMap<>();
 
   Mono<Endpoint> save(final Endpoint endpoint) {
-    return Mono
-      .just(endpoint)
-      .doOnNext(it ->
-        this.endpointsByOwner.compute(
-            it.owner(),
-            (key, value) -> {
-              final Map<String, Endpoint> endpoints = Optional
-                .ofNullable(value)
-                .orElseGet(HashMap::new);
-              endpoints.put(it.id(), it);
-              return endpoints;
-            }
-          )
+    return Mono.just(endpoint).doOnNext(this::addEndpointToMap);
+  }
+
+  private void addEndpointToMap(Endpoint it) {
+    this.endpointsByOwner.compute(
+        it.owner(),
+        (key, value) -> {
+          final Map<String, Endpoint> endpoints = Optional
+            .ofNullable(value)
+            .orElseGet(HashMap::new);
+          endpoints.put(it.id(), it);
+          return endpoints;
+        }
       );
   }
 
   Mono<Void> delete(final Endpoint endpoint) {
     return Mono
-      .justOrEmpty(this.endpointsByOwner.get(endpoint.owner()))
+      .just(endpoint.owner())
+      .mapNotNull(this.endpointsByOwner::get)
+      .switchIfEmpty(
+        createEndpointNotFoundError(endpoint.owner(), endpoint.id())
+      )
       .map(endpoints -> endpoints.remove(endpoint.id()))
       .then();
+  }
+
+  private static <T> Mono<T> createEndpointNotFoundError(
+    final String owner,
+    final String id
+  ) {
+    return Mono.error(() -> new EndpointNotFoundException(owner, id));
   }
 
   public Flux<Endpoint> findByOwner(
@@ -41,7 +52,8 @@ class EndpointRepository {
     final int pageSize
   ) {
     return Mono
-      .justOrEmpty(this.endpointsByOwner.get(owner))
+      .just(owner)
+      .mapNotNull(this.endpointsByOwner::get)
       .flatMapMany(endpoints ->
         Flux
           .fromIterable(endpoints.values())
@@ -53,8 +65,17 @@ class EndpointRepository {
 
   Mono<Endpoint> findByOwnerAndId(final String owner, final String id) {
     return Mono
-      .justOrEmpty(this.endpointsByOwner.get(owner))
+      .just(owner)
+      .mapNotNull(this.endpointsByOwner::get)
       .mapNotNull(endpoints -> endpoints.get(id));
+  }
+
+  Mono<Endpoint> getByOwnerAndId(final String owner, final String id) {
+    return Mono
+      .just(owner)
+      .mapNotNull(this.endpointsByOwner::get)
+      .mapNotNull(endpoints -> endpoints.get(id))
+      .switchIfEmpty(createEndpointNotFoundError(owner, id));
   }
 
   Mono<Integer> countByOwner(final String owner) {

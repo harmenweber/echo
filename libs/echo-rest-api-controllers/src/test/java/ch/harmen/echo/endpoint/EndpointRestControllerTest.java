@@ -21,25 +21,27 @@ import org.springframework.test.web.reactive.server.FluxExchangeResult;
 public class EndpointRestControllerTest {
 
   @Autowired
-  private EndpointRestClient restClient;
+  private EndpointRestClient endpointRestClient;
 
   @BeforeEach
   void deleteAllExistingEndpoints() {
     Optional
       .ofNullable(
-        this.restClient.getEndpoints(
+        this.endpointRestClient.get(
             Optional.of(0),
             Optional.of(EndpointService.MAX_ENDPOINTS_PER_OWNER)
           )
           .getResponseBody()
       )
       .orElseGet(Collections::emptyList)
-      .forEach(endpoint -> this.restClient.deleteEndpoint(endpoint.id()));
+      .stream()
+      .map(EndpointDto::id)
+      .forEach(this.endpointRestClient::delete);
   }
 
   @Test
   void createEndpoint_returnsANewlyCreatedEndpoint() {
-    final EndpointDto endpoint = this.restClient.createEndpoint();
+    final EndpointDto endpoint = this.endpointRestClient.create();
 
     assertThat(endpoint).isNotNull();
     assertAll(
@@ -51,8 +53,8 @@ public class EndpointRestControllerTest {
 
   @Test
   void createEndpoint_returnsDifferentEndpoints_ifCalledMultipleTimes() {
-    final EndpointDto endpoint1 = this.restClient.createEndpoint();
-    final EndpointDto endpoint2 = this.restClient.createEndpoint();
+    final EndpointDto endpoint1 = this.endpointRestClient.create();
+    final EndpointDto endpoint2 = this.endpointRestClient.create();
 
     assertAll(
       () -> assertThat(endpoint1.id()).isNotEqualTo(endpoint2.id()),
@@ -63,13 +65,16 @@ public class EndpointRestControllerTest {
 
   @Test
   void createEndpoint_returnsUnauthorizedError_ifOwnerTriesToExceedHisEndpointQuota() {
+    // Create the maximum number of endpoints.
     for (int i = 0; i < EndpointService.MAX_ENDPOINTS_PER_OWNER; i++) {
-      this.restClient.createEndpoint();
+      this.endpointRestClient.create();
     }
 
+    // Try to create another endpoint.
     final EntityExchangeResult<String[]> response =
-      this.restClient.createEndpoint(String[].class);
+      this.endpointRestClient.create(String[].class);
 
+    // Assert the API returns an UNAUTHORIZED error.
     assertAll(
       () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED),
       () ->
@@ -80,12 +85,10 @@ public class EndpointRestControllerTest {
 
   @Test
   void getEndpoint() {
-    final EndpointDto endpoint = this.restClient.createEndpoint();
-
-    assertThat(endpoint).isNotNull();
+    final EndpointDto endpoint = this.endpointRestClient.create();
 
     EntityExchangeResult<EndpointDto> response =
-      this.restClient.getEndpoint(endpoint.id());
+      this.endpointRestClient.get(endpoint.id());
 
     assertAll(
       () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.OK),
@@ -95,18 +98,22 @@ public class EndpointRestControllerTest {
 
   @Test
   void getEndpoint_returnsNotFound_ifEndpointDoesNotExist() {
-    EntityExchangeResult<EndpointDto> response =
-      this.restClient.getEndpoint(UUID.randomUUID().toString());
+    final EntityExchangeResult<String[]> response =
+      this.endpointRestClient.get(String[].class, UUID.randomUUID().toString());
+
     assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
   }
 
   @Test
   void delete() {
-    final EndpointDto endpoint = this.restClient.createEndpoint();
+    // Create and endpoint.
+    final EndpointDto endpoint = this.endpointRestClient.create();
 
+    // Fetch that endpoint.
     final EntityExchangeResult<EndpointDto> endpointLoadedBeforeDelete =
-      this.restClient.getEndpoint(endpoint.id());
+      this.endpointRestClient.get(endpoint.id());
 
+    // Assert the endpoint exists.
     assertAll(
       () ->
         assertThat(endpointLoadedBeforeDelete.getStatus())
@@ -114,42 +121,47 @@ public class EndpointRestControllerTest {
       () -> assertThat(endpointLoadedBeforeDelete.getResponseBody()).isNotNull()
     );
 
+    // Delete the endpoint.
     final FluxExchangeResult<Void> deletionResponse =
-      this.restClient.deleteEndpoint(endpoint.id());
+      this.endpointRestClient.delete(endpoint.id());
 
     assertThat(deletionResponse.getStatus()).isEqualTo(HttpStatus.OK);
 
-    final EntityExchangeResult<EndpointDto> endpointLoadedAfterDelete =
-      this.restClient.getEndpoint(endpoint.id());
+    // Fetch the endpoint.
+    final EntityExchangeResult<String[]> endpointLoadedAfterDelete =
+      this.endpointRestClient.get(String[].class, endpoint.id());
 
+    // Assert the endpoint does not exist anymore.
     assertThat(endpointLoadedAfterDelete.getStatus())
       .isEqualTo(HttpStatus.NOT_FOUND);
   }
 
   @Test
   void delete_returnsNotFound_ifEndpointDoesNotExist() {
-    FluxExchangeResult<Void> response =
-      this.restClient.deleteEndpoint(UUID.randomUUID().toString());
+    final FluxExchangeResult<Void> response =
+      this.endpointRestClient.delete(UUID.randomUUID().toString());
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
   }
 
   @Test
   void getEndpoints_respectsPageSize() {
-    final int minNumberOfEndpoints = 10;
+    // Create the maximum number of endpoints.
+    final int minNumberOfEndpoints = EndpointService.MAX_ENDPOINTS_PER_OWNER;
     for (int i = 0; i < minNumberOfEndpoints; i++) {
-      this.restClient.createEndpoint();
+      this.endpointRestClient.create();
     }
 
+    // Fetch endpoints with a specific page size.
     final int pageSize = minNumberOfEndpoints - 1;
-
     final EntityExchangeResult<List<EndpointDto>> response =
-      this.restClient.getEndpoints(Optional.empty(), Optional.of(pageSize));
+      this.endpointRestClient.get(Optional.empty(), Optional.of(pageSize));
 
     final List<EndpointDto> fetchedEndpoints = Optional
       .ofNullable(response.getResponseBody())
       .orElseGet(Collections::emptyList);
 
+    // Assert the API respected the specific page size.
     assertAll(
       () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.OK),
       () -> assertThat(fetchedEndpoints.size()).isEqualTo(pageSize)
@@ -159,32 +171,33 @@ public class EndpointRestControllerTest {
   @Test
   void getEndpoints_respectsPage() {
     // Create some endpoints.
-    final int minNumberOfEndpoints = 10;
+    final int minNumberOfEndpoints = EndpointService.MAX_ENDPOINTS_PER_OWNER;
     for (int i = 0; i < minNumberOfEndpoints; i++) {
-      this.restClient.createEndpoint();
+      this.endpointRestClient.create();
     }
 
-    // Query up to the first 100 endpoints.
-    final List<EndpointDto> firstFewEndpoints = Optional
+    // Query the endpoints.
+    final List<EndpointDto> allEndpoints = Optional
       .ofNullable(
-        this.restClient.getEndpoints(Optional.empty(), Optional.of(100))
+        this.endpointRestClient.get(
+            Optional.empty(),
+            Optional.of(EndpointService.MAX_ENDPOINTS_PER_OWNER)
+          )
           .getResponseBody()
       )
       .orElseGet(Collections::emptyList);
 
-    // From the list of first few endpoints, calculate a page size that guarantees two pages.
-    final int newPageSize = firstFewEndpoints.size() / 2;
-
-    // Query the first and the second page.
+    // Fetch the endpoints again. But this time in two pages.
+    final int newPageSize = allEndpoints.size() / 2;
     final List<EndpointDto> firstPageOfEndpoints = Optional
       .ofNullable(
-        this.restClient.getEndpoints(Optional.of(0), Optional.of(newPageSize))
+        this.endpointRestClient.get(Optional.of(0), Optional.of(newPageSize))
           .getResponseBody()
       )
       .orElseGet(Collections::emptyList);
     final List<EndpointDto> secondPageOfEndpoints = Optional
       .ofNullable(
-        this.restClient.getEndpoints(Optional.of(1), Optional.of(newPageSize))
+        this.endpointRestClient.get(Optional.of(1), Optional.of(newPageSize))
           .getResponseBody()
       )
       .orElseGet(Collections::emptyList);
@@ -194,24 +207,24 @@ public class EndpointRestControllerTest {
     firstAndSecondPageOfEndpoints.addAll(firstPageOfEndpoints);
     firstAndSecondPageOfEndpoints.addAll(secondPageOfEndpoints);
 
-    // Assert that the concatenation of the first and the second page is equal to the initial query that fetched both pages at once.
-    assertThat(firstFewEndpoints).isEqualTo(firstAndSecondPageOfEndpoints);
+    // Assert that the concatenation is equal to the originally fetched endpoints.
+    assertThat(allEndpoints).isEqualTo(firstAndSecondPageOfEndpoints);
   }
 
   @Test
   void getEndpoints_returnsBadRequest_ifPageIsLessThan0() {
-    EntityExchangeResult<String[]> response =
-      this.restClient.getEndpoints(
+    final EntityExchangeResult<String[]> response =
+      this.endpointRestClient.get(
           String[].class,
           Optional.of(-1),
           Optional.empty()
         );
 
-    Optional<String[]> actualErrorMessages = Optional.ofNullable(
+    final Optional<String[]> actualErrorMessages = Optional.ofNullable(
       response.getResponseBody()
     );
 
-    String[] expectedErrorMessages = new String[] {
+    final String[] expectedErrorMessages = new String[] {
       "The page number must be greater than or equal to 0.",
     };
 
@@ -225,26 +238,26 @@ public class EndpointRestControllerTest {
 
   @Test
   void getEndpoints_returnsOk_ifPageIs0() {
-    EntityExchangeResult<List<EndpointDto>> response =
-      this.restClient.getEndpoints(Optional.of(0), Optional.empty());
+    final EntityExchangeResult<List<EndpointDto>> response =
+      this.endpointRestClient.get(Optional.of(0), Optional.empty());
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
   }
 
   @Test
   void getEndpoints_returnsBadRequest_ifPageSizeIsLessThan1() {
-    EntityExchangeResult<String[]> response =
-      this.restClient.getEndpoints(
+    final EntityExchangeResult<String[]> response =
+      this.endpointRestClient.get(
           String[].class,
           Optional.empty(),
           Optional.of(0)
         );
 
-    Optional<String[]> actualErrorMessages = Optional.ofNullable(
+    final Optional<String[]> actualErrorMessages = Optional.ofNullable(
       response.getResponseBody()
     );
 
-    String[] expectedErrorMessages = new String[] {
+    final String[] expectedErrorMessages = new String[] {
       "The page size must be between 1 and 5000.",
     };
 
@@ -258,34 +271,34 @@ public class EndpointRestControllerTest {
 
   @Test
   void getEndpoints_returnsOk_ifPageSizeIs1() {
-    EntityExchangeResult<List<EndpointDto>> response =
-      this.restClient.getEndpoints(Optional.empty(), Optional.of(1));
+    final EntityExchangeResult<List<EndpointDto>> response =
+      this.endpointRestClient.get(Optional.empty(), Optional.of(1));
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
   }
 
   @Test
   void getEndpoints_returnsOk_ifPageSizeIs5000() {
-    EntityExchangeResult<List<EndpointDto>> response =
-      this.restClient.getEndpoints(Optional.empty(), Optional.of(5000));
+    final EntityExchangeResult<List<EndpointDto>> response =
+      this.endpointRestClient.get(Optional.empty(), Optional.of(5000));
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
   }
 
   @Test
   void getEndpoints_returnsBadRequest_ifPageSizeIsGreaterThan5000() {
-    EntityExchangeResult<String[]> response =
-      this.restClient.getEndpoints(
+    final EntityExchangeResult<String[]> response =
+      this.endpointRestClient.get(
           String[].class,
           Optional.empty(),
           Optional.of(5001)
         );
 
-    Optional<String[]> actualErrorMessages = Optional.ofNullable(
+    final Optional<String[]> actualErrorMessages = Optional.ofNullable(
       response.getResponseBody()
     );
 
-    String[] expectedErrorMessages = new String[] {
+    final String[] expectedErrorMessages = new String[] {
       "The page size must be between 1 and 5000.",
     };
 

@@ -50,26 +50,24 @@ class EndpointRestController {
 
   @GetMapping(path = "/{id}")
   Mono<ResponseEntity<EndpointDto>> get(@PathVariable("id") final String id) {
-    return this.endpointService.findByOwnerAndId(
+    return this.endpointService.getByOwnerAndId(
         this.currentUserContextSupplier.get().id(),
         id
       )
       .map(this.endpointToEndpointDtoTransformer)
-      .map(ResponseEntity::ok)
-      .defaultIfEmpty(ResponseEntity.notFound().build());
+      .map(ResponseEntity::ok);
   }
 
   @DeleteMapping(path = "/{id}")
   Mono<ResponseEntity<Void>> delete(@PathVariable("id") final String id) {
-    return this.endpointService.findByOwnerAndId(
+    return this.endpointService.getByOwnerAndId(
         this.currentUserContextSupplier.get().id(),
         id
       )
       .flatMap(endpoint ->
         this.endpointService.delete(endpoint).thenReturn(endpoint)
       )
-      .map(endpoint -> ResponseEntity.ok().<Void>build())
-      .defaultIfEmpty(ResponseEntity.notFound().build());
+      .map(endpoint -> ResponseEntity.ok().build());
   }
 
   @GetMapping

@@ -11,7 +11,7 @@ class EndpointRepository {
 
   private final ConcurrentMap<String, ConcurrentMap<String, Endpoint>> endpointsByOwner = new ConcurrentHashMap<>();
 
-  Mono<Endpoint> save(final Endpoint endpoint) {
+  Mono<Endpoint> create(final Endpoint endpoint) {
     return Mono.just(endpoint).doOnNext(this::addEndpointToMap);
   }
 

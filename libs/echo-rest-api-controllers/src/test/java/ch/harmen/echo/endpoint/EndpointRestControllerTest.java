@@ -29,7 +29,7 @@ public class EndpointRestControllerTest {
       .ofNullable(
         this.endpointRestClient.get(
             Optional.of(0),
-            Optional.of(EndpointService.MAX_ENDPOINTS_PER_OWNER)
+            Optional.of(EndpointConstants.MAX_ENDPOINTS_PER_OWNER)
           )
           .getResponseBody()
       )
@@ -66,7 +66,7 @@ public class EndpointRestControllerTest {
   @Test
   void createEndpoint_returnsUnauthorizedError_ifOwnerTriesToExceedHisEndpointQuota() {
     // Create the maximum number of endpoints.
-    for (int i = 0; i < EndpointService.MAX_ENDPOINTS_PER_OWNER; i++) {
+    for (int i = 0; i < EndpointConstants.MAX_ENDPOINTS_PER_OWNER; i++) {
       this.endpointRestClient.create();
     }
 
@@ -147,7 +147,7 @@ public class EndpointRestControllerTest {
   @Test
   void getEndpoints_respectsPageSize() {
     // Create the maximum number of endpoints.
-    final int minNumberOfEndpoints = EndpointService.MAX_ENDPOINTS_PER_OWNER;
+    final int minNumberOfEndpoints = EndpointConstants.MAX_ENDPOINTS_PER_OWNER;
     for (int i = 0; i < minNumberOfEndpoints; i++) {
       this.endpointRestClient.create();
     }
@@ -171,7 +171,7 @@ public class EndpointRestControllerTest {
   @Test
   void getEndpoints_respectsPage() {
     // Create some endpoints.
-    final int minNumberOfEndpoints = EndpointService.MAX_ENDPOINTS_PER_OWNER;
+    final int minNumberOfEndpoints = EndpointConstants.MAX_ENDPOINTS_PER_OWNER;
     for (int i = 0; i < minNumberOfEndpoints; i++) {
       this.endpointRestClient.create();
     }
@@ -181,7 +181,7 @@ public class EndpointRestControllerTest {
       .ofNullable(
         this.endpointRestClient.get(
             Optional.empty(),
-            Optional.of(EndpointService.MAX_ENDPOINTS_PER_OWNER)
+            Optional.of(EndpointConstants.MAX_ENDPOINTS_PER_OWNER)
           )
           .getResponseBody()
       )

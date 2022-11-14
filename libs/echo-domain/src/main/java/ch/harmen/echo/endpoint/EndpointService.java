@@ -2,21 +2,20 @@ package ch.harmen.echo.endpoint;
 
 import ch.harmen.echo.user.CurrentUserContextSupplier;
 import java.util.Objects;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class EndpointService {
-
-  static final int MAX_ENDPOINTS_PER_OWNER = 10;
 
   private final EndpointFactory endpointFactory;
   private final EndpointRepository endpointRepository;
   private final CurrentUserContextSupplier currentUserContextSupplier;
 
   public EndpointService(
-    EndpointFactory endpointFactory,
-    EndpointRepository endpointRepository,
-    CurrentUserContextSupplier currentUserContextSupplier
+    final EndpointFactory endpointFactory,
+    final EndpointRepository endpointRepository,
+    final CurrentUserContextSupplier currentUserContextSupplier
   ) {
     this.endpointFactory = Objects.requireNonNull(endpointFactory);
     this.endpointRepository = Objects.requireNonNull(endpointRepository);
@@ -35,17 +34,17 @@ public class EndpointService {
         );
       })
       .then(Mono.fromSupplier(this.endpointFactory::create))
-      .flatMap(this.endpointRepository::save);
+      .flatMap(this.endpointRepository::create);
   }
 
   private static void assertEndpointQuoteNotReachedYet(
     String owner,
     int endpointCount
   ) {
-    if (endpointCount >= MAX_ENDPOINTS_PER_OWNER) {
+    if (endpointCount >= EndpointConstants.MAX_ENDPOINTS_PER_OWNER) {
       throw new EndpointQuotaReachedException(
         owner,
-        MAX_ENDPOINTS_PER_OWNER,
+        EndpointConstants.MAX_ENDPOINTS_PER_OWNER,
         endpointCount
       );
     }
@@ -67,20 +66,18 @@ public class EndpointService {
     return this.endpointRepository.findByOwner(owner, page, pageSize);
   }
 
-  private static void assertPageParameter(int page) {
-    if (page < 0) {
-      throw new IllegalArgumentException(
-        "Parameter page must be >= 0 but was %d".formatted(page)
-      );
-    }
+  private static void assertPageParameter(final int page) {
+    Assert.isTrue(
+      page >= 0,
+      () -> "Parameter page must be >= 0 but was %d".formatted(page)
+    );
   }
 
-  private static void assertPageSizeParameter(int pageSize) {
-    if (pageSize < 1) {
-      throw new IllegalArgumentException(
-        "Parameter pageSize must be >= 0 but was %d".formatted(pageSize)
-      );
-    }
+  private static void assertPageSizeParameter(final int pageSize) {
+    Assert.isTrue(
+      pageSize >= 1,
+      () -> "Parameter pageSize must be >= 0 but was %d".formatted(pageSize)
+    );
   }
 
   public Mono<Endpoint> findByOwnerAndId(final String owner, final String id) {

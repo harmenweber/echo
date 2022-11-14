@@ -15,7 +15,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -36,19 +35,6 @@ final class EndpointServiceTest {
 
   private final EndpointTestFixture endpointTestFixture = new EndpointTestFixture();
 
-  @BeforeEach
-  void deleteAllExistingEndpoints() {
-    final String currentUserId = this.currentUserContextSupplier.get().id();
-
-    this.endpointService.findByOwner(
-        currentUserId,
-        0,
-        EndpointService.MAX_ENDPOINTS_PER_OWNER
-      )
-      .flatMap(this.endpointService::delete)
-      .subscribe();
-  }
-
   @Test
   void create_returnsEndpointWithOwnerEqualToCurrentUser() {
     final String currentUserId = this.currentUserContextSupplier.get().id();
@@ -63,7 +49,7 @@ final class EndpointServiceTest {
 
   @Test
   void create_returnsEndpointsWithUniqueIds() {
-    final int limit = EndpointService.MAX_ENDPOINTS_PER_OWNER;
+    final int limit = EndpointConstants.MAX_ENDPOINTS_PER_OWNER;
 
     Mono<Integer> endpointIds = Flux
       .fromStream(Stream.generate(this.endpointService::create))
@@ -78,7 +64,7 @@ final class EndpointServiceTest {
 
   @Test
   void create_returnsEndpointsWithUniqueApiKeys() {
-    final int limit = EndpointService.MAX_ENDPOINTS_PER_OWNER;
+    final int limit = EndpointConstants.MAX_ENDPOINTS_PER_OWNER;
 
     Mono<Integer> endpointApiKeys = Flux
       .fromStream(Stream.generate(this.endpointService::create))
@@ -94,7 +80,7 @@ final class EndpointServiceTest {
   @Test
   void create_throwsException_ifOwnerTriesToExceedHisEndpointQuota() {
     final List<Mono<Endpoint>> endpointCreations = new ArrayList<>();
-    for (int i = 0; i < EndpointService.MAX_ENDPOINTS_PER_OWNER; i++) {
+    for (int i = 0; i < EndpointConstants.MAX_ENDPOINTS_PER_OWNER; i++) {
       endpointCreations.add(this.endpointService.create());
     }
 
@@ -221,7 +207,7 @@ final class EndpointServiceTest {
     // Create some endpoints and capture the owner.
     final String owner = Flux
       .fromStream(Stream.generate(this.endpointService::create))
-      .take(EndpointService.MAX_ENDPOINTS_PER_OWNER)
+      .take(EndpointConstants.MAX_ENDPOINTS_PER_OWNER)
       .flatMap(Function.identity())
       .map(Endpoint::owner)
       .blockFirst();
@@ -231,7 +217,7 @@ final class EndpointServiceTest {
       this.endpointService.findByOwner(
           owner,
           0,
-          EndpointService.MAX_ENDPOINTS_PER_OWNER
+          EndpointConstants.MAX_ENDPOINTS_PER_OWNER
         )
         .collectList()
         .blockOptional()
@@ -256,7 +242,7 @@ final class EndpointServiceTest {
     final List<String> endpoints = Flux
       .fromStream(Stream.generate(this.endpointService::create))
       .flatMap(Function.identity())
-      .take(EndpointService.MAX_ENDPOINTS_PER_OWNER)
+      .take(EndpointConstants.MAX_ENDPOINTS_PER_OWNER)
       .map(Endpoint::owner)
       .collectList()
       .blockOptional()
@@ -268,7 +254,7 @@ final class EndpointServiceTest {
       this.endpointService.findByOwner(
           owner,
           0,
-          EndpointService.MAX_ENDPOINTS_PER_OWNER
+          EndpointConstants.MAX_ENDPOINTS_PER_OWNER
         )
         .collectList()
         .blockOptional()
@@ -304,7 +290,7 @@ final class EndpointServiceTest {
       this.endpointService.findByOwner(
           owner,
           0,
-          EndpointService.MAX_ENDPOINTS_PER_OWNER
+          EndpointConstants.MAX_ENDPOINTS_PER_OWNER
         )
         .collectList()
         .blockOptional()
@@ -324,7 +310,7 @@ final class EndpointServiceTest {
         .orElseGet(Collections::emptyList);
 
     // Concatenate the first with the second page.
-    ArrayList<Endpoint> concatenatedFirstAndSecondPage = Lists.newArrayList();
+    final ArrayList<Endpoint> concatenatedFirstAndSecondPage = Lists.newArrayList();
     concatenatedFirstAndSecondPage.addAll(firstPage);
     concatenatedFirstAndSecondPage.addAll(secondPage);
 

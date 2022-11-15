@@ -23,6 +23,11 @@ public class RequestService {
     return this.requestRepository.delete(request);
   }
 
+  public Mono<Void> deleteByEndpointId(final String endpointId) {
+    Objects.requireNonNull(endpointId);
+    return this.requestRepository.deleteByEndpointId(endpointId);
+  }
+
   public Flux<Request> findByEndpointId(
     final String endpointId,
     final int page,

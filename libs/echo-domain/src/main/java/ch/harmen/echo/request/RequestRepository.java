@@ -50,6 +50,26 @@ class RequestRepository {
       .remove(request);
   }
 
+  public Mono<Void> deleteByEndpointId(final String endpointId) {
+    return Mono
+      .just(endpointId)
+      .mapNotNull(this::removeRequestsByEndpointIdFromMap)
+      .then();
+  }
+
+  /**
+   * Removes the request list for the given endpoint id.
+   *
+   * @param endpointId The endpoint id.
+   * @return The removed request list, or {@code null} if there was not
+   */
+  @Nullable
+  private RequestList removeRequestsByEndpointIdFromMap(
+    final String endpointId
+  ) {
+    return this.requestsByEndpoint.remove(endpointId);
+  }
+
   private static <T> Mono<T> createRequestNotFoundError(
     final String endpointId,
     final String requestId

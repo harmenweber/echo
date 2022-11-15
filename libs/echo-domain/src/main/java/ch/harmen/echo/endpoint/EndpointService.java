@@ -1,5 +1,6 @@
 package ch.harmen.echo.endpoint;
 
+import ch.harmen.echo.request.RequestService;
 import ch.harmen.echo.user.CurrentUserContextSupplier;
 import java.util.Objects;
 import org.springframework.util.Assert;
@@ -11,16 +12,19 @@ public class EndpointService {
   private final EndpointFactory endpointFactory;
   private final EndpointRepository endpointRepository;
   private final CurrentUserContextSupplier currentUserContextSupplier;
+  private final RequestService requestService;
 
   public EndpointService(
     final EndpointFactory endpointFactory,
     final EndpointRepository endpointRepository,
-    final CurrentUserContextSupplier currentUserContextSupplier
+    final CurrentUserContextSupplier currentUserContextSupplier,
+    RequestService requestService
   ) {
     this.endpointFactory = Objects.requireNonNull(endpointFactory);
     this.endpointRepository = Objects.requireNonNull(endpointRepository);
     this.currentUserContextSupplier =
       Objects.requireNonNull(currentUserContextSupplier);
+    this.requestService = Objects.requireNonNull(requestService);
   }
 
   public Mono<Endpoint> create() {
@@ -52,7 +56,8 @@ public class EndpointService {
 
   public Mono<Void> delete(final Endpoint endpoint) {
     Objects.requireNonNull(endpoint);
-    return this.endpointRepository.delete(endpoint);
+    return this.endpointRepository.delete(endpoint)
+      .then(this.requestService.deleteByEndpointId(endpoint.id()));
   }
 
   public Flux<Endpoint> findByOwner(

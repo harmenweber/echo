@@ -1,5 +1,6 @@
 package ch.harmen.echo.endpoint;
 
+import ch.harmen.echo.request.RequestDomainConfiguration;
 import ch.harmen.echo.user.UserDomainConfiguration;
 import java.util.Objects;
 import org.springframework.context.annotation.Bean;
@@ -9,12 +10,16 @@ import org.springframework.context.annotation.Configuration;
 public class EndpointDomainConfiguration {
 
   private final UserDomainConfiguration userDomainConfiguration;
+  private final RequestDomainConfiguration requestDomainConfiguration;
 
   public EndpointDomainConfiguration(
-    UserDomainConfiguration userDomainConfiguration
+    UserDomainConfiguration userDomainConfiguration,
+    RequestDomainConfiguration requestDomainConfiguration
   ) {
     this.userDomainConfiguration =
       Objects.requireNonNull(userDomainConfiguration);
+    this.requestDomainConfiguration =
+      Objects.requireNonNull(requestDomainConfiguration);
   }
 
   @Bean
@@ -26,7 +31,8 @@ public class EndpointDomainConfiguration {
         new EndpointApiKeyFactory()
       ),
       new EndpointRepository(),
-      this.userDomainConfiguration.currentUserContextSupplier()
+      this.userDomainConfiguration.currentUserContextSupplier(),
+      this.requestDomainConfiguration.requestService()
     );
   }
 }

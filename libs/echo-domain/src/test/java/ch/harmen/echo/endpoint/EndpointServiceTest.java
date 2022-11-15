@@ -2,7 +2,9 @@ package ch.harmen.echo.endpoint;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
 
+import ch.harmen.echo.request.RequestService;
 import ch.harmen.echo.user.CurrentUserContextSupplier;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +17,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -23,6 +27,9 @@ import reactor.test.StepVerifier;
 final class EndpointServiceTest {
 
   private final CurrentUserContextSupplier currentUserContextSupplier = new CurrentUserContextSupplier();
+  private final RequestService requestService = Mockito.mock(
+    RequestService.class
+  );
   private final EndpointService endpointService = new EndpointService(
     new EndpointFactory(
       new EndpointIdFactory(),
@@ -30,10 +37,18 @@ final class EndpointServiceTest {
       new EndpointApiKeyFactory()
     ),
     new EndpointRepository(),
-    currentUserContextSupplier
+    currentUserContextSupplier,
+    this.requestService
   );
 
   private final EndpointTestFixture endpointTestFixture = new EndpointTestFixture();
+
+  @BeforeEach
+  void trainMocks() {
+    Mockito
+      .when(this.requestService.deleteByEndpointId(any()))
+      .thenReturn(Mono.empty().then());
+  }
 
   @Test
   void create_returnsEndpointWithOwnerEqualToCurrentUser() {

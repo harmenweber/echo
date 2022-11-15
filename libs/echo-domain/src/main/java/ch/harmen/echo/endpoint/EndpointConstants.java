@@ -1,6 +1,7 @@
 package ch.harmen.echo.endpoint;
 
-final class EndpointConstants {
+public final class EndpointConstants {
 
-  static final int MAX_ENDPOINTS_PER_OWNER = 10;
+  public static final int MAX_ENDPOINTS_PER_OWNER = 10;
+  public static final String ENDPOINTS_PATH = "/endpoints";
 }

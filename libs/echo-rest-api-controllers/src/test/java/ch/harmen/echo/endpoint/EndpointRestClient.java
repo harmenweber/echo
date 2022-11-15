@@ -19,7 +19,7 @@ public class EndpointRestClient {
 
   EndpointDto create() {
     return this.webTestClient.post()
-      .uri(EndpointRestController.ENDPOINTS_PATH)
+      .uri(EndpointConstants.ENDPOINTS_PATH)
       .exchange()
       .expectStatus()
       .isCreated()
@@ -30,7 +30,7 @@ public class EndpointRestClient {
 
   <T> EntityExchangeResult<T> create(final Class<T> expectedResponseBodyType) {
     return this.webTestClient.post()
-      .uri(EndpointRestController.ENDPOINTS_PATH)
+      .uri(EndpointConstants.ENDPOINTS_PATH)
       .exchange()
       .expectBody(expectedResponseBodyType)
       .returnResult();
@@ -40,7 +40,7 @@ public class EndpointRestClient {
     final ParameterizedTypeReference<T> expectedResponseBodyType
   ) {
     return this.webTestClient.post()
-      .uri(EndpointRestController.ENDPOINTS_PATH)
+      .uri(EndpointConstants.ENDPOINTS_PATH)
       .exchange()
       .expectBody(expectedResponseBodyType)
       .returnResult();
@@ -48,7 +48,7 @@ public class EndpointRestClient {
 
   EntityExchangeResult<EndpointDto> get(final String id) {
     return this.webTestClient.get()
-      .uri(EndpointRestController.ENDPOINTS_PATH + "/{id}", id)
+      .uri(EndpointConstants.ENDPOINTS_PATH + "/{id}", id)
       .exchange()
       .expectBody(EndpointDto.class)
       .returnResult();
@@ -59,7 +59,7 @@ public class EndpointRestClient {
     final String id
   ) {
     return this.webTestClient.get()
-      .uri(EndpointRestController.ENDPOINTS_PATH + "/{id}", id)
+      .uri(EndpointConstants.ENDPOINTS_PATH + "/{id}", id)
       .exchange()
       .expectBody(expectedResponseBodyType)
       .returnResult();
@@ -67,7 +67,7 @@ public class EndpointRestClient {
 
   FluxExchangeResult<Void> delete(String id) {
     return this.webTestClient.delete()
-      .uri(EndpointRestController.ENDPOINTS_PATH + "/{id}", id)
+      .uri(EndpointConstants.ENDPOINTS_PATH + "/{id}", id)
       .exchange()
       .returnResult(Void.class);
   }
@@ -86,8 +86,7 @@ public class EndpointRestClient {
   ) {
     return this.webTestClient.get()
       .uri(
-        EndpointRestController.ENDPOINTS_PATH +
-        "?page={page}&pageSize={pageSize}",
+        EndpointConstants.ENDPOINTS_PATH + "?page={page}&pageSize={pageSize}",
         page.orElse(null),
         pageSize.orElse(null)
       )
@@ -103,8 +102,7 @@ public class EndpointRestClient {
   ) {
     return this.webTestClient.get()
       .uri(
-        EndpointRestController.ENDPOINTS_PATH +
-        "?page={page}&pageSize={pageSize}",
+        EndpointConstants.ENDPOINTS_PATH + "?page={page}&pageSize={pageSize}",
         page.orElse(null),
         pageSize.orElse(null)
       )

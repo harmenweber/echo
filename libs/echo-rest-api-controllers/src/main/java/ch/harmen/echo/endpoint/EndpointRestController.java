@@ -20,10 +20,8 @@ import reactor.core.publisher.Mono;
 
 @Validated
 @RestController
-@RequestMapping(path = EndpointRestController.ENDPOINTS_PATH)
+@RequestMapping(path = EndpointConstants.ENDPOINTS_PATH)
 class EndpointRestController {
-
-  static final String ENDPOINTS_PATH = "/endpoints";
 
   private final EndpointService endpointService;
   private final EndpointToEndpointDtoTransformer endpointToEndpointDtoTransformer;

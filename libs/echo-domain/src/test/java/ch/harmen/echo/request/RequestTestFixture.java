@@ -52,7 +52,12 @@ public final class RequestTestFixture {
   }
 
   public URI getRandomUri(final String endpointId) {
-    return URI.create("/endpoints/%s/requests".formatted(endpointId));
+    return URI.create(
+      (RequestConstants.REQUESTS_PATH).replace(
+          "{" + RequestConstants.ENDPOINT_ID_PATH_VARIABLE + "}",
+          endpointId
+        )
+    );
   }
 
   public HttpMethod getRandomMethod() {

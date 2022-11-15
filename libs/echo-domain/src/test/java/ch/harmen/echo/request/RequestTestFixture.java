@@ -4,6 +4,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import org.springframework.http.HttpHeaders;
@@ -31,7 +32,7 @@ public final class RequestTestFixture {
       getRandomUri(endpointId),
       getRandomMethod(),
       getRandomHeaders(charset),
-      getRandomBody(charset)
+      Optional.of(getRandomBody(charset))
     );
   }
 

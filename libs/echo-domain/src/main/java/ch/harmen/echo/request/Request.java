@@ -2,6 +2,7 @@ package ch.harmen.echo.request;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
@@ -12,7 +13,7 @@ public record Request(
   URI uri,
   HttpMethod method,
   HttpHeaders headers,
-  byte[] body
+  Optional<byte[]> body
 ) {
   public Request(final Request request) {
     this(

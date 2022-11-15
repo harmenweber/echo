@@ -3,9 +3,10 @@ package ch.harmen.echo.endpoint;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-import ch.harmen.echo.TestConfiguration;
+import ch.harmen.echo.RestTestConfiguration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,9 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
-import org.springframework.test.web.reactive.server.FluxExchangeResult;
 
-@SpringBootTest(classes = TestConfiguration.class)
+@SpringBootTest(classes = RestTestConfiguration.class)
 public class EndpointRestControllerTest {
 
   @Autowired
@@ -25,18 +25,7 @@ public class EndpointRestControllerTest {
 
   @BeforeEach
   void deleteAllExistingEndpoints() {
-    Optional
-      .ofNullable(
-        this.endpointRestClient.get(
-            Optional.of(0),
-            Optional.of(EndpointConstants.MAX_ENDPOINTS_PER_OWNER)
-          )
-          .getResponseBody()
-      )
-      .orElseGet(Collections::emptyList)
-      .stream()
-      .map(EndpointDto::id)
-      .forEach(this.endpointRestClient::delete);
+    this.endpointRestClient.deleteAllEndpoints();
   }
 
   @Test
@@ -98,10 +87,17 @@ public class EndpointRestControllerTest {
 
   @Test
   void getEndpoint_returnsNotFound_ifEndpointDoesNotExist() {
-    final EntityExchangeResult<String[]> response =
-      this.endpointRestClient.get(String[].class, UUID.randomUUID().toString());
+    final String endpointId = UUID.randomUUID().toString();
 
-    assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+    final EntityExchangeResult<String[]> response =
+      this.endpointRestClient.get(String[].class, endpointId);
+
+    assertAll(
+      () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND),
+      () ->
+        assertThat(response.getResponseBody())
+          .contains("Endpoint %s not found.".formatted(endpointId))
+    );
   }
 
   @Test
@@ -122,7 +118,7 @@ public class EndpointRestControllerTest {
     );
 
     // Delete the endpoint.
-    final FluxExchangeResult<Void> deletionResponse =
+    final EntityExchangeResult<Void> deletionResponse =
       this.endpointRestClient.delete(endpoint.id());
 
     assertThat(deletionResponse.getStatus()).isEqualTo(HttpStatus.OK);
@@ -132,28 +128,64 @@ public class EndpointRestControllerTest {
       this.endpointRestClient.get(String[].class, endpoint.id());
 
     // Assert the endpoint does not exist anymore.
-    assertThat(endpointLoadedAfterDelete.getStatus())
-      .isEqualTo(HttpStatus.NOT_FOUND);
+    assertAll(
+      () ->
+        assertThat(endpointLoadedAfterDelete.getStatus())
+          .isEqualTo(HttpStatus.NOT_FOUND),
+      () ->
+        assertThat(endpointLoadedAfterDelete.getResponseBody())
+          .contains("Endpoint %s not found.".formatted(endpoint.id()))
+    );
   }
 
   @Test
   void delete_returnsNotFound_ifEndpointDoesNotExist() {
-    final FluxExchangeResult<Void> response =
-      this.endpointRestClient.delete(UUID.randomUUID().toString());
+    final String endpointId = UUID.randomUUID().toString();
 
-    assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+    final EntityExchangeResult<String[]> response =
+      this.endpointRestClient.delete(String[].class, endpointId);
+
+    assertAll(
+      () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND),
+      () ->
+        assertThat(response.getResponseBody())
+          .contains("Endpoint %s not found.".formatted(endpointId))
+    );
+  }
+
+  @Test
+  void getEndpoints_returnsEndpointsOrderedById() {
+    // Create the maximum number of endpoints.
+    for (int i = 0; i < EndpointConstants.MAX_ENDPOINTS_PER_OWNER; i++) {
+      this.endpointRestClient.create();
+    }
+
+    // Fetch all endpoints.
+    final EntityExchangeResult<List<EndpointDto>> response =
+      this.endpointRestClient.get(
+          Optional.empty(),
+          Optional.of(EndpointConstants.MAX_ENDPOINTS_PER_OWNER)
+        );
+
+    final List<EndpointDto> fetchedEndpoints = Optional
+      .ofNullable(response.getResponseBody())
+      .orElseGet(Collections::emptyList);
+
+    // Assert the API returned the endpoints in the correct order.
+    final List<EndpointDto> sortedEndpoints = new ArrayList<>(fetchedEndpoints);
+    sortedEndpoints.sort(Comparator.comparing(EndpointDto::id));
+    assertThat(fetchedEndpoints).isEqualTo(sortedEndpoints);
   }
 
   @Test
   void getEndpoints_respectsPageSize() {
     // Create the maximum number of endpoints.
-    final int minNumberOfEndpoints = EndpointConstants.MAX_ENDPOINTS_PER_OWNER;
-    for (int i = 0; i < minNumberOfEndpoints; i++) {
+    for (int i = 0; i < EndpointConstants.MAX_ENDPOINTS_PER_OWNER; i++) {
       this.endpointRestClient.create();
     }
 
     // Fetch endpoints with a specific page size.
-    final int pageSize = minNumberOfEndpoints - 1;
+    final int pageSize = EndpointConstants.MAX_ENDPOINTS_PER_OWNER - 1;
     final EntityExchangeResult<List<EndpointDto>> response =
       this.endpointRestClient.get(Optional.empty(), Optional.of(pageSize));
 
@@ -171,8 +203,7 @@ public class EndpointRestControllerTest {
   @Test
   void getEndpoints_respectsPage() {
     // Create some endpoints.
-    final int minNumberOfEndpoints = EndpointConstants.MAX_ENDPOINTS_PER_OWNER;
-    for (int i = 0; i < minNumberOfEndpoints; i++) {
+    for (int i = 0; i < EndpointConstants.MAX_ENDPOINTS_PER_OWNER; i++) {
       this.endpointRestClient.create();
     }
 
@@ -270,7 +301,7 @@ public class EndpointRestControllerTest {
   }
 
   @Test
-  void getEndpoints_returnsOk_ifPageSizeIs1() {
+  void getEndpoints_returnsOk_ifPageSizeIsEqualTo1() {
     final EntityExchangeResult<List<EndpointDto>> response =
       this.endpointRestClient.get(Optional.empty(), Optional.of(1));
 
@@ -278,7 +309,7 @@ public class EndpointRestControllerTest {
   }
 
   @Test
-  void getEndpoints_returnsOk_ifPageSizeIs5000() {
+  void getEndpoints_returnsOk_ifPageSizeIsEqualTo5000() {
     final EntityExchangeResult<List<EndpointDto>> response =
       this.endpointRestClient.get(Optional.empty(), Optional.of(5000));
 

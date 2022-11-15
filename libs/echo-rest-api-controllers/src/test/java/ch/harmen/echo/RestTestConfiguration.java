@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootApplication
-public class TestConfiguration {
+public class RestTestConfiguration {
 
   @Autowired
   private ApplicationContext applicationContext;

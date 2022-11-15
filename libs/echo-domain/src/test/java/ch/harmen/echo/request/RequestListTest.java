@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
@@ -56,7 +57,7 @@ final class RequestListTest {
       this.requestTestFixture.getRandomUri(),
       this.requestTestFixture.getRandomMethod(),
       this.requestTestFixture.getRandomHeaders(),
-      this.requestTestFixture.getRandomBody()
+      Optional.of(this.requestTestFixture.getRandomBody())
     );
     requestList.add(request);
 
@@ -91,7 +92,7 @@ final class RequestListTest {
       this.requestTestFixture.getRandomUri(),
       this.requestTestFixture.getRandomMethod(),
       this.requestTestFixture.getRandomHeaders(),
-      this.requestTestFixture.getRandomBody()
+      Optional.of(this.requestTestFixture.getRandomBody())
     );
     requestList.add(request);
 
@@ -132,7 +133,7 @@ final class RequestListTest {
       this.requestTestFixture.getRandomUri(),
       this.requestTestFixture.getRandomMethod(),
       this.requestTestFixture.getRandomHeaders(),
-      this.requestTestFixture.getRandomBody()
+      Optional.of(this.requestTestFixture.getRandomBody())
     );
     requestList.add(request);
 

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.assertj.core.util.Lists;
@@ -182,7 +183,7 @@ final class RequestServiceTest {
       this.requestTestFixture.getRandomUri(),
       this.requestTestFixture.getRandomMethod(),
       this.requestTestFixture.getRandomHeaders(),
-      this.requestTestFixture.getRandomBody()
+      Optional.of(this.requestTestFixture.getRandomBody())
     );
   }
 

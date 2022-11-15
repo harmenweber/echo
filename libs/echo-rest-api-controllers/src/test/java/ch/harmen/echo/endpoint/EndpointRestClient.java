@@ -1,11 +1,11 @@
 package ch.harmen.echo.endpoint;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
-import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 public class EndpointRestClient {
@@ -17,7 +17,22 @@ public class EndpointRestClient {
     this.webTestClient = Objects.requireNonNull(webTestClient);
   }
 
-  EndpointDto create() {
+  public void deleteAllEndpoints() {
+    Optional
+      .ofNullable(
+        get(
+          Optional.of(0),
+          Optional.of(EndpointConstants.MAX_ENDPOINTS_PER_OWNER)
+        )
+          .getResponseBody()
+      )
+      .orElseGet(Collections::emptyList)
+      .stream()
+      .map(EndpointDto::id)
+      .forEach(this::delete);
+  }
+
+  public EndpointDto create() {
     return this.webTestClient.post()
       .uri(EndpointConstants.ENDPOINTS_PATH)
       .exchange()
@@ -28,7 +43,9 @@ public class EndpointRestClient {
       .getResponseBody();
   }
 
-  <T> EntityExchangeResult<T> create(final Class<T> expectedResponseBodyType) {
+  public <T> EntityExchangeResult<T> create(
+    final Class<T> expectedResponseBodyType
+  ) {
     return this.webTestClient.post()
       .uri(EndpointConstants.ENDPOINTS_PATH)
       .exchange()
@@ -36,7 +53,7 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  <T> EntityExchangeResult<T> create(
+  public <T> EntityExchangeResult<T> create(
     final ParameterizedTypeReference<T> expectedResponseBodyType
   ) {
     return this.webTestClient.post()
@@ -46,15 +63,11 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  EntityExchangeResult<EndpointDto> get(final String id) {
-    return this.webTestClient.get()
-      .uri(EndpointConstants.ENDPOINTS_PATH + "/{id}", id)
-      .exchange()
-      .expectBody(EndpointDto.class)
-      .returnResult();
+  public EntityExchangeResult<EndpointDto> get(final String id) {
+    return get(EndpointDto.class, id);
   }
 
-  <T> EntityExchangeResult<T> get(
+  public <T> EntityExchangeResult<T> get(
     final Class<T> expectedResponseBodyType,
     final String id
   ) {
@@ -65,21 +78,29 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  FluxExchangeResult<Void> delete(String id) {
+  public EntityExchangeResult<Void> delete(final String id) {
+    return delete(Void.class, id);
+  }
+
+  public <T> EntityExchangeResult<T> delete(
+    final Class<T> expectedResponseBodyType,
+    final String id
+  ) {
     return this.webTestClient.delete()
       .uri(EndpointConstants.ENDPOINTS_PATH + "/{id}", id)
       .exchange()
-      .returnResult(Void.class);
+      .expectBody(expectedResponseBodyType)
+      .returnResult();
   }
 
-  EntityExchangeResult<List<EndpointDto>> get(
+  public EntityExchangeResult<List<EndpointDto>> get(
     final Optional<Integer> page,
     final Optional<Integer> pageSize
   ) {
     return this.get(ENDPOINT_DTO_LIST, page, pageSize);
   }
 
-  <T> EntityExchangeResult<T> get(
+  public <T> EntityExchangeResult<T> get(
     final Class<T> expectedResponseBodyType,
     final Optional<Integer> page,
     final Optional<Integer> pageSize
@@ -95,7 +116,7 @@ public class EndpointRestClient {
       .returnResult();
   }
 
-  private <T> EntityExchangeResult<T> get(
+  public <T> EntityExchangeResult<T> get(
     final ParameterizedTypeReference<T> expectedResponseBodyType,
     final Optional<Integer> page,
     final Optional<Integer> pageSize

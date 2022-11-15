@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.Range;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Validated
 @RestController
 @RequestMapping(path = RequestConstants.REQUESTS_PATH)
 class RequestRestController {
@@ -28,13 +30,15 @@ class RequestRestController {
   private final CurrentUserContextSupplier currentUserContextSupplier;
   private final RequestEntityToRequestTransformer requestEntityToRequestTransformer;
   private final RequestToRequestDtoTransformer requestToRequestDtoTransformer;
+  private final RequestToCreateRequestResultDtoTransformer requestToCreateRequestResultDtoTransformer;
 
   RequestRestController(
     RequestService requestService,
     EndpointService endpointService,
     CurrentUserContextSupplier currentUserContextSupplier,
     RequestEntityToRequestTransformer requestEntityToRequestTransformer,
-    RequestToRequestDtoTransformer requestToRequestDtoTransformer
+    RequestToRequestDtoTransformer requestToRequestDtoTransformer,
+    RequestToCreateRequestResultDtoTransformer requestToCreateRequestResultDtoTransformer
   ) {
     this.requestService = Objects.requireNonNull(requestService);
     this.endpointService = Objects.requireNonNull(endpointService);
@@ -44,11 +48,13 @@ class RequestRestController {
       Objects.requireNonNull(requestEntityToRequestTransformer);
     this.requestToRequestDtoTransformer =
       Objects.requireNonNull(requestToRequestDtoTransformer);
+    this.requestToCreateRequestResultDtoTransformer =
+      Objects.requireNonNull(requestToCreateRequestResultDtoTransformer);
   }
 
   @PostMapping
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  Mono<Void> create(
+  @ResponseStatus(HttpStatus.CREATED)
+  Mono<CreateRequestResultDto> create(
     @PathVariable(
       RequestConstants.ENDPOINT_ID_PATH_VARIABLE
     ) final String endpointId,
@@ -62,7 +68,7 @@ class RequestRestController {
         this.requestEntityToRequestTransformer.apply(endpoint.id(), request)
       )
       .flatMap(this.requestService::create)
-      .then();
+      .map(this.requestToCreateRequestResultDtoTransformer);
   }
 
   @GetMapping(path = "/{id}")
@@ -77,7 +83,7 @@ class RequestRestController {
         endpointId
       )
       .flatMap(endpoint ->
-        this.requestService.findByEndpointIdAndId(endpoint.id(), id)
+        this.requestService.getByEndpointIdAndId(endpoint.id(), id)
       )
       .map(this.requestToRequestDtoTransformer)
       .map(ResponseEntity::ok);
@@ -92,7 +98,7 @@ class RequestRestController {
   ) {
     return this.endpointService.getByOwnerAndId(
         this.currentUserContextSupplier.get().id(),
-        id
+        endpointId
       )
       .flatMap(endpoint ->
         this.requestService.getByEndpointIdAndId(endpoint.id(), id)

@@ -1,6 +1,7 @@
 package ch.harmen.echo.request;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import org.springframework.http.RequestEntity;
@@ -22,7 +23,7 @@ class RequestEntityToRequestTransformer
       requestEntity.getUrl(),
       requestEntity.getMethod(),
       requestEntity.getHeaders(),
-      requestEntity.getBody()
+      Optional.ofNullable(requestEntity.getBody())
     );
   }
 }

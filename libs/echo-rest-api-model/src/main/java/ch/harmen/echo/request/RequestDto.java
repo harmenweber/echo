@@ -4,6 +4,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public record RequestDto(
   String id,
@@ -12,5 +13,5 @@ public record RequestDto(
   URI uri,
   String method,
   Map<String, List<String>> headers,
-  String base64EncodedBody
+  Optional<String> base64EncodedBody
 ) {}

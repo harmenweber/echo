@@ -1,11 +1,11 @@
 package ch.harmen.echo.request;
 
+import com.github.javafaker.Faker;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,14 +13,14 @@ import org.springframework.http.MediaType;
 
 public final class RequestTestFixture {
 
-  private static final Random RANDOM = new Random(System.currentTimeMillis());
-  private static final Charset[] CHARSETS = new Charset[] {
+  public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+  public static final Charset[] RANDOM_CHARSET_VALUES = new Charset[] {
     StandardCharsets.UTF_8,
     StandardCharsets.ISO_8859_1,
     StandardCharsets.US_ASCII,
     StandardCharsets.UTF_16,
   };
-  private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+  private final Faker faker = new Faker();
 
   public Request create() {
     final String endpointId = getRandomEndpointId();
@@ -62,8 +62,7 @@ public final class RequestTestFixture {
   }
 
   public HttpMethod getRandomMethod() {
-    final HttpMethod[] httpMethods = HttpMethod.values();
-    return httpMethods[RANDOM.nextInt(httpMethods.length)];
+    return faker.options().option(HttpMethod.class);
   }
 
   public HttpHeaders getRandomHeaders() {
@@ -88,6 +87,6 @@ public final class RequestTestFixture {
   }
 
   private Charset getRandomCharset() {
-    return CHARSETS[RANDOM.nextInt(CHARSETS.length)];
+    return faker.options().option(RANDOM_CHARSET_VALUES);
   }
 }

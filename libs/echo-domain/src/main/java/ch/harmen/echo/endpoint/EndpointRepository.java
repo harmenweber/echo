@@ -2,8 +2,10 @@ package ch.harmen.echo.endpoint;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -50,7 +52,7 @@ class EndpointRepository {
     return Mono.error(() -> new EndpointNotFoundException(owner, id));
   }
 
-  public Flux<Endpoint> findByOwner(
+  Flux<Endpoint> findByOwner(
     final String owner,
     final int page,
     final int pageSize
@@ -65,6 +67,84 @@ class EndpointRepository {
           .skip((long) page * pageSize)
           .take(pageSize)
       );
+  }
+
+  Flux<Endpoint> findFirstByOwner(
+    final String owner,
+    final int first,
+    final Optional<String> before,
+    final Optional<String> after
+  ) {
+    return Mono
+      .just(owner)
+      .mapNotNull(this.endpointsByOwner::get)
+      .flatMapMany(endpoints ->
+        Flux
+          .fromIterable(endpoints.values())
+          .filter(isBefore(before))
+          .filter(isAfter(after))
+          .sort(Comparator.comparing(Endpoint::id))
+          .take(first)
+      );
+  }
+
+  Flux<Endpoint> findLastByOwner(
+    final String owner,
+    final int last,
+    final Optional<String> before,
+    final Optional<String> after
+  ) {
+    return Mono
+      .just(owner)
+      .mapNotNull(this.endpointsByOwner::get)
+      .flatMapMany(endpoints ->
+        Flux
+          .fromIterable(endpoints.values())
+          .filter(isBefore(before))
+          .filter(isAfter(after))
+          .sort(Comparator.comparing(Endpoint::id))
+          .takeLast(last)
+      );
+  }
+
+  private static Predicate<Endpoint> isBefore(
+    final Optional<String> optionalId
+  ) {
+    return endpoint -> endpointIdIsBefore(endpoint, optionalId);
+  }
+
+  private static boolean endpointIdIsBefore(
+    final Endpoint endpoint,
+    final Optional<String> optionalId
+  ) {
+    return optionalId.map(id -> endpointIdIsBefore(endpoint, id)).orElse(true);
+  }
+
+  private static boolean endpointIdIsBefore(
+    final Endpoint endpoint,
+    final String id
+  ) {
+    return id.compareTo(endpoint.id()) > 0;
+  }
+
+  private static Predicate<Endpoint> isAfter(
+    final Optional<String> optionalId
+  ) {
+    return endpoint -> endpointIdIsAfter(endpoint, optionalId);
+  }
+
+  private static boolean endpointIdIsAfter(
+    final Endpoint endpoint,
+    final Optional<String> optionalId
+  ) {
+    return optionalId.map(id -> endpointIdIsAfter(endpoint, id)).orElse(true);
+  }
+
+  private static boolean endpointIdIsAfter(
+    final Endpoint endpoint,
+    final String id
+  ) {
+    return id.compareTo(endpoint.id()) < 0;
   }
 
   Mono<Endpoint> findByOwnerAndId(final String owner, final String id) {

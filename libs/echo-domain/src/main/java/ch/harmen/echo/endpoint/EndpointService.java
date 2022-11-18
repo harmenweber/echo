@@ -3,6 +3,7 @@ package ch.harmen.echo.endpoint;
 import ch.harmen.echo.request.RequestService;
 import ch.harmen.echo.user.CurrentUserContextSupplier;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -81,8 +82,49 @@ public class EndpointService {
   private static void assertPageSizeParameter(final int pageSize) {
     Assert.isTrue(
       pageSize >= 1,
-      () -> "Parameter pageSize must be >= 0 but was %d".formatted(pageSize)
+      () -> "Parameter pageSize must be >= 1 but was %d".formatted(pageSize)
     );
+  }
+
+  public Flux<Endpoint> findFirstByOwner(
+    final String owner,
+    final int first,
+    final Optional<String> before,
+    final Optional<String> after
+  ) {
+    Objects.requireNonNull(owner);
+    assertFirstParameter(first);
+    return this.endpointRepository.findFirstByOwner(
+        owner,
+        first,
+        before,
+        after
+      );
+  }
+
+  private void assertFirstParameter(final int first) {
+    Assert.isTrue(
+      first >= 1,
+      () -> "Parameter first must be >= 1 but was %d".formatted(first)
+    );
+  }
+
+  private void assertLastParameter(final int last) {
+    Assert.isTrue(
+      last >= 1,
+      () -> "Parameter last must be >= 1 but was %d".formatted(last)
+    );
+  }
+
+  public Flux<Endpoint> findLastByOwner(
+    final String owner,
+    final int last,
+    final Optional<String> before,
+    final Optional<String> after
+  ) {
+    Objects.requireNonNull(owner);
+    assertLastParameter(last);
+    return this.endpointRepository.findLastByOwner(owner, last, before, after);
   }
 
   public Mono<Endpoint> findByOwnerAndId(final String owner, final String id) {

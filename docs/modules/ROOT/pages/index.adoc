@@ -9,6 +9,6 @@ To get a better idea about Echo, take a look at the xref:user-journeys.adoc[] th
 
 [NOTE]
 ====
-Please note that I just gave birth to this project.
-So far, I have only documented want I intend to do.
+This project progresses slowly at the moment.
+I had a busy December 2022 and started a new job in January 2023. I intend to continue this project, but I'm not sure how much time I'll be able to spend.
 ====

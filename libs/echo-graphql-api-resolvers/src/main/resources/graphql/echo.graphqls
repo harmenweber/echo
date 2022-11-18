@@ -1,0 +1,36 @@
+type Query {
+  owner: UserDto
+}
+
+type UserDto {
+  id: ID!
+  endpoints(
+    before: String
+    after: String
+    first: Int
+    last: Int
+  ): OwnerEndpointsConnectionDto!
+}
+
+type OwnerEndpointsConnectionDto {
+  #  totalCount: Int!
+  edges: [EndpointEdgeDto!]!
+  pageInfo: PageInfoDto!
+}
+
+type EndpointEdgeDto {
+  cursor: String!
+  node: EndpointDto!
+}
+
+type EndpointDto {
+  id: ID!
+  apiKey: String!
+}
+
+type PageInfoDto {
+  startCursor: String
+  endCursor: String
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
+}

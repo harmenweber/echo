@@ -33,6 +33,7 @@
     <module>libs/echo-graphql-api-model</module>
     <module>libs/echo-graphql-api-resolvers</module>
     <module>apps/echo-graphql-api-app</module>
+    <module>apps/echo-api-app</module>
   </modules>
 
   <build>
@@ -75,8 +76,24 @@
       </dependency>
       <dependency>
         <groupId>ch.harmen.echo</groupId>
+        <artifactId>echo-domain</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.harmen.echo</groupId>
         <artifactId>echo-rest-api-model</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.harmen.echo</groupId>
+        <artifactId>echo-rest-api-model</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>ch.harmen.echo</groupId>
@@ -95,6 +112,14 @@
       </dependency>
       <dependency>
         <groupId>ch.harmen.echo</groupId>
+        <artifactId>echo-graphql-api-model</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.harmen.echo</groupId>
         <artifactId>echo-graphql-api-resolvers</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -102,6 +127,11 @@
         <groupId>ch.harmen.echo</groupId>
         <artifactId>echo-graphql-api-app</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.javafaker</groupId>
+        <artifactId>javafaker</artifactId>
+        <version>1.0.2</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

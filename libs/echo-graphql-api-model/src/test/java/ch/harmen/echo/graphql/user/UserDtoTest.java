@@ -1,17 +1,17 @@
-package ch.harmen.echo.endpoint;
+package ch.harmen.echo.graphql.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-final class EndpointDtoTest {
+final class UserDtoTest {
 
-  private final EndpointDtoTestFixture testFixture = new EndpointDtoTestFixture();
+  private final UserDtoTestFixture testFixture = new UserDtoTestFixture();
 
   @Test
   void copyConstructor() {
     var original = this.testFixture.create();
-    var copy = new EndpointDto(original);
+    var copy = new UserDto(original);
 
     assertThat(copy).isEqualTo(original);
   }

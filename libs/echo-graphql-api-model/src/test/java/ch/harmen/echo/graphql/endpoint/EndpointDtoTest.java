@@ -1,4 +1,4 @@
-package ch.harmen.echo.endpoint;
+package ch.harmen.echo.graphql.endpoint;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

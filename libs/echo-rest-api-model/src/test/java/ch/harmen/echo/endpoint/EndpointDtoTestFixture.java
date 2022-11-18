@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public final class EndpointDtoTestFixture {
 
-  EndpointDto create() {
+  public EndpointDto create() {
     return new EndpointDto(getRandomId(), getRandomOwner(), getRandomApiKey());
   }
 

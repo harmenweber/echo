@@ -14,4 +14,16 @@ public record RequestDto(
   String method,
   Map<String, List<String>> headers,
   Optional<String> base64EncodedBody
-) {}
+) {
+  public RequestDto(final RequestDto original) {
+    this(
+      original.id,
+      original.endpointId,
+      original.receiveTime,
+      original.uri,
+      original.method,
+      original.headers,
+      original.base64EncodedBody
+    );
+  }
+}

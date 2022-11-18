@@ -1,4 +1,4 @@
-package ch.harmen.echographqlapimodel;
+package ch.harmen.echo.graphql.endpoint;
 
 import java.util.UUID;
 

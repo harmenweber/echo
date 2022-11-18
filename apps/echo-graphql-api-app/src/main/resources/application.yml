@@ -1,7 +1,7 @@
 spring:
   graphql:
     schema:
-      locations: "classpath*:graphql/**"
+      locations: 'classpath*:graphql/**'
       printer:
         enabled: true
     graphiql:

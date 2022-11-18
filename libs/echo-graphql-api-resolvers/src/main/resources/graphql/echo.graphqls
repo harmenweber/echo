@@ -4,7 +4,12 @@ type Query {
 
 type UserDto {
   id: ID!
-  endpoints(before: String, after: String, first: Int, last: Int): OwnerEndpointsConnectionDto!
+  endpoints(
+    before: String
+    after: String
+    first: Int
+    last: Int
+  ): OwnerEndpointsConnectionDto!
 }
 
 type OwnerEndpointsConnectionDto {

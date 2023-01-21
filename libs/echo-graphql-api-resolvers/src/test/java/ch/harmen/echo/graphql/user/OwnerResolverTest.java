@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import ch.harmen.echo.GraphQlTestConfiguration;
 import ch.harmen.echo.graphql.common.Edges;
-import ch.harmen.echo.graphql.endpoint.EndPointEdgeDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -85,9 +84,9 @@ final class OwnerResolverTest {
 
     final var pageInfo = owner.endpoints().pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(edges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(Edges.getFirst(edges).map(OwnerEndPointEdgeDto::cursor));
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(edges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(Edges.getLast(edges).map(OwnerEndPointEdgeDto::cursor));
   }
 
   @Test
@@ -130,9 +129,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage())
       .isEqualTo(unfilteredEndpointsConnection.pageInfo().hasNextPage());
@@ -176,9 +179,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }
@@ -225,9 +232,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }
@@ -273,9 +284,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(true);
   }
@@ -323,9 +338,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }
@@ -368,9 +387,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }
@@ -415,9 +438,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }
@@ -464,9 +491,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }
@@ -512,9 +543,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(true);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }
@@ -562,9 +597,13 @@ final class OwnerResolverTest {
 
     final var pageInfo = filteredEndpointsConnection.pageInfo();
     assertThat(pageInfo.startCursor())
-      .isEqualTo(Edges.getFirst(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getFirst(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.endCursor())
-      .isEqualTo(Edges.getLast(filteredEdges).map(EndPointEdgeDto::cursor));
+      .isEqualTo(
+        Edges.getLast(filteredEdges).map(OwnerEndPointEdgeDto::cursor)
+      );
     assertThat(pageInfo.hasPreviousPage()).isEqualTo(false);
     assertThat(pageInfo.hasNextPage()).isEqualTo(false);
   }

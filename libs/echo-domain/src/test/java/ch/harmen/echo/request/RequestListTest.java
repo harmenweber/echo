@@ -165,7 +165,7 @@ final class RequestListTest {
     // Create the expected result.
     List<Request> sortedRequests = shuffledRequests
       .stream()
-      .sorted(RequestList.REQUESTS_BY_RECEIVE_TIME_DESC)
+      .sorted(Request.COMPARATOR)
       .toList();
 
     assertThat(requestList.getRequests().stream().toList())

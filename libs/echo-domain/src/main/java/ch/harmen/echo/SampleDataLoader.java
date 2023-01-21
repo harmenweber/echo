@@ -16,12 +16,13 @@ public class SampleDataLoader
 
   private final EndpointService endpointService;
 
-  public SampleDataLoader(EndpointService endpointService) {
+  public SampleDataLoader(final EndpointService endpointService) {
     this.endpointService = Objects.requireNonNull(endpointService);
   }
 
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
+    Objects.requireNonNull(event);
     System.out.println("Creating sample data…");
     List<Endpoint> endpoints = Flux
       .fromStream(Stream.generate(this.endpointService::create))

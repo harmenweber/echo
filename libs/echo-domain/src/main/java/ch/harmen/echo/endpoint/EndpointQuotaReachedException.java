@@ -1,5 +1,7 @@
 package ch.harmen.echo.endpoint;
 
+import java.util.Objects;
+
 public class EndpointQuotaReachedException extends RuntimeException {
 
   private final String owner;
@@ -12,7 +14,7 @@ public class EndpointQuotaReachedException extends RuntimeException {
     final int endpointCount
   ) {
     super("You have reached your maximum number of endpoints.");
-    this.owner = owner;
+    this.owner = Objects.requireNonNull(owner);
     this.endpointQuota = endpointQuota;
     this.endpointCount = endpointCount;
   }

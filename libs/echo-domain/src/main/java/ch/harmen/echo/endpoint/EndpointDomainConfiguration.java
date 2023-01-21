@@ -13,8 +13,8 @@ public class EndpointDomainConfiguration {
   private final RequestDomainConfiguration requestDomainConfiguration;
 
   public EndpointDomainConfiguration(
-    UserDomainConfiguration userDomainConfiguration,
-    RequestDomainConfiguration requestDomainConfiguration
+    final UserDomainConfiguration userDomainConfiguration,
+    final RequestDomainConfiguration requestDomainConfiguration
   ) {
     this.userDomainConfiguration =
       Objects.requireNonNull(userDomainConfiguration);

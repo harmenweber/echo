@@ -10,9 +10,8 @@ final class EndpointDtoTest {
 
   @Test
   void copyConstructor() {
-    var original = this.testFixture.create();
-    var copy = new EndpointDto(original);
-
+    final EndpointDto original = this.testFixture.create();
+    final EndpointDto copy = new EndpointDto(original);
     assertThat(copy).isEqualTo(original);
   }
 }

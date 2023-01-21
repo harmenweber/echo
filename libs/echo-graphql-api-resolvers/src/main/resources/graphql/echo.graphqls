@@ -1,5 +1,6 @@
 type Query {
   owner: UserDto
+  endpoint(id: ID!): EndpointDto
 }
 
 type UserDto {
@@ -13,19 +14,53 @@ type UserDto {
 }
 
 type OwnerEndpointsConnectionDto {
-  #  totalCount: Int!
-  edges: [EndpointEdgeDto!]!
+  edges: [OwnerEndpointEdgeDto!]!
   pageInfo: PageInfoDto!
 }
 
-type EndpointEdgeDto {
+type OwnerEndpointEdgeDto {
   cursor: String!
-  node: EndpointDto!
+  node: OwnerEndpointDto!
+}
+
+type OwnerEndpointDto {
+  id: ID!
+  apiKey: String!
 }
 
 type EndpointDto {
   id: ID!
   apiKey: String!
+  requests(
+    before: String
+    after: String
+    first: Int
+    last: Int
+  ): EndpointRequestsConnectionDto!
+}
+
+type EndpointRequestsConnectionDto {
+  edges: [EndpointRequestEdgeDto!]!
+  pageInfo: PageInfoDto!
+}
+
+type EndpointRequestEdgeDto {
+  cursor: String!
+  node: EndpointRequestDto!
+}
+
+type EndpointRequestDto {
+  id: ID!
+  receiveTime: String!
+  uri: String!
+  method: String!
+  headers: [RequestHeaderDto!]!
+  base64EncodedBody: String
+}
+
+type RequestHeaderDto {
+  name: String!
+  values: [String!]!
 }
 
 type PageInfoDto {

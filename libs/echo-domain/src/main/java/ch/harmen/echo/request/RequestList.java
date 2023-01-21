@@ -1,24 +1,19 @@
 package ch.harmen.echo.request;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class RequestList {
 
-  static final Comparator<Request> REQUESTS_BY_RECEIVE_TIME_DESC = Comparator
-    .comparing(Request::receiveTime)
-    .reversed();
-
   private final AtomicInteger counter = new AtomicInteger(0);
   private final NavigableSet<Request> requests = new ConcurrentSkipListSet<>(
-    REQUESTS_BY_RECEIVE_TIME_DESC
+    Request.COMPARATOR
   );
   private final int requestLimit;
 
-  RequestList(int requestLimit) {
+  RequestList(final int requestLimit) {
     this.requestLimit = requestLimit;
   }
 

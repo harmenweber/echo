@@ -17,4 +17,6 @@ public final class RequestConstants {
     "/{" +
     RequestConstants.ID_PATH_VARIABLE +
     "}";
+
+  private RequestConstants() {}
 }

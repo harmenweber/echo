@@ -1,5 +1,7 @@
 package ch.harmen.echo.endpoint;
 
+import java.util.Objects;
+
 public class EndpointNotFoundException extends RuntimeException {
 
   private final String owner;
@@ -7,8 +9,8 @@ public class EndpointNotFoundException extends RuntimeException {
 
   public EndpointNotFoundException(final String owner, final String id) {
     super("Endpoint %s not found.".formatted(id));
-    this.owner = owner;
-    this.id = id;
+    this.owner = Objects.requireNonNull(owner);
+    this.id = Objects.requireNonNull(id);
   }
 
   public String getOwner() {

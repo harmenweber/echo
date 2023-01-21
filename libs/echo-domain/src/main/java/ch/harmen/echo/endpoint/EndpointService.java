@@ -19,7 +19,7 @@ public class EndpointService {
     final EndpointFactory endpointFactory,
     final EndpointRepository endpointRepository,
     final CurrentUserContextSupplier currentUserContextSupplier,
-    RequestService requestService
+    final RequestService requestService
   ) {
     this.endpointFactory = Objects.requireNonNull(endpointFactory);
     this.endpointRepository = Objects.requireNonNull(endpointRepository);
@@ -43,8 +43,8 @@ public class EndpointService {
   }
 
   private static void assertEndpointQuoteNotReachedYet(
-    String owner,
-    int endpointCount
+    final String owner,
+    final int endpointCount
   ) {
     if (endpointCount >= EndpointConstants.MAX_ENDPOINTS_PER_OWNER) {
       throw new EndpointQuotaReachedException(
@@ -94,6 +94,8 @@ public class EndpointService {
   ) {
     Objects.requireNonNull(owner);
     assertFirstParameter(first);
+    Objects.requireNonNull(before);
+    Objects.requireNonNull(after);
     return this.endpointRepository.findFirstByOwner(
         owner,
         first,
@@ -109,13 +111,6 @@ public class EndpointService {
     );
   }
 
-  private void assertLastParameter(final int last) {
-    Assert.isTrue(
-      last >= 1,
-      () -> "Parameter last must be >= 1 but was %d".formatted(last)
-    );
-  }
-
   public Flux<Endpoint> findLastByOwner(
     final String owner,
     final int last,
@@ -124,7 +119,16 @@ public class EndpointService {
   ) {
     Objects.requireNonNull(owner);
     assertLastParameter(last);
+    Objects.requireNonNull(before);
+    Objects.requireNonNull(after);
     return this.endpointRepository.findLastByOwner(owner, last, before, after);
+  }
+
+  private void assertLastParameter(final int last) {
+    Assert.isTrue(
+      last >= 1,
+      () -> "Parameter last must be >= 1 but was %d".formatted(last)
+    );
   }
 
   public Mono<Endpoint> findByOwnerAndId(final String owner, final String id) {

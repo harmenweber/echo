@@ -1,13 +1,22 @@
 package ch.harmen.echo.graphql.user;
 
 import ch.harmen.echo.graphql.common.PageInfoDto;
-import ch.harmen.echo.graphql.endpoint.EndPointEdgeDto;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public record OwnerEndpointsConnectionDto(
-  List<EndPointEdgeDto> edges,
+  List<OwnerEndPointEdgeDto> edges,
   PageInfoDto pageInfo
 ) {
+  public OwnerEndpointsConnectionDto(
+    final List<OwnerEndPointEdgeDto> edges,
+    final PageInfoDto pageInfo
+  ) {
+    this.edges = new ArrayList<>(Objects.requireNonNull(edges));
+    this.pageInfo = Objects.requireNonNull(pageInfo);
+  }
+
   public OwnerEndpointsConnectionDto(
     final OwnerEndpointsConnectionDto original
   ) {

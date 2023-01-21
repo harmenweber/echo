@@ -1,3 +1,9 @@
 package ch.harmen.echo.user;
 
-public record UserContext(String id) {}
+import java.util.Objects;
+
+public record UserContext(String id) {
+  public UserContext {
+    Objects.requireNonNull(id);
+  }
+}

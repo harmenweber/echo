@@ -1,6 +1,7 @@
 package ch.harmen.echo.graphql.common;
 
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,6 +11,7 @@ public class PageInfoDtoFactory {
     final List<EDGE> edges,
     final boolean hasMoreEdges
   ) {
+    Objects.requireNonNull(edges);
     return new PageInfoDto(
       Edges.getFirst(edges).map(Edge::cursor),
       Edges.getLast(edges).map(Edge::cursor),
@@ -22,6 +24,7 @@ public class PageInfoDtoFactory {
     final List<EDGE> edges,
     final boolean hasMoreEdges
   ) {
+    Objects.requireNonNull(edges);
     return new PageInfoDto(
       Edges.getFirst(edges).map(Edge::cursor),
       Edges.getLast(edges).map(Edge::cursor),

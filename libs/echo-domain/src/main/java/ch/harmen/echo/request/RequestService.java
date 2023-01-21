@@ -1,6 +1,7 @@
 package ch.harmen.echo.request;
 
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -69,5 +70,55 @@ public class RequestService {
     Objects.requireNonNull(endpointId);
     Objects.requireNonNull(id);
     return this.requestRepository.getByEndpointIdAndId(endpointId, id);
+  }
+
+  public Flux<Request> findFirstByEndpoint(
+    final String endpointId,
+    final int first,
+    final Optional<ReceiveTimeAndId> before,
+    final Optional<ReceiveTimeAndId> after
+  ) {
+    Objects.requireNonNull(endpointId);
+    assertFirstParameter(first);
+    Objects.requireNonNull(before);
+    Objects.requireNonNull(after);
+    return this.requestRepository.findFirstByEndpoint(
+        endpointId,
+        first,
+        before,
+        after
+      );
+  }
+
+  private void assertFirstParameter(final int first) {
+    Assert.isTrue(
+      first >= 1,
+      () -> "Parameter first must be >= 1 but was %d".formatted(first)
+    );
+  }
+
+  public Flux<Request> findLastByEndpoint(
+    final String endpointId,
+    final int last,
+    final Optional<ReceiveTimeAndId> before,
+    final Optional<ReceiveTimeAndId> after
+  ) {
+    Objects.requireNonNull(endpointId);
+    assertLastParameter(last);
+    Objects.requireNonNull(before);
+    Objects.requireNonNull(after);
+    return this.requestRepository.findLastByEndpoint(
+        endpointId,
+        last,
+        before,
+        after
+      );
+  }
+
+  private void assertLastParameter(final int last) {
+    Assert.isTrue(
+      last >= 1,
+      () -> "Parameter last must be >= 1 but was %d".formatted(last)
+    );
   }
 }

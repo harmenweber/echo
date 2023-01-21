@@ -6,9 +6,7 @@ import ch.harmen.echo.graphql.common.Edges;
 import ch.harmen.echo.graphql.common.ForwardPagingDto;
 import ch.harmen.echo.graphql.common.PageInfoDtoFactory;
 import ch.harmen.echo.graphql.common.PagingDto;
-import ch.harmen.echo.graphql.endpoint.EndpointCursorConverter;
-import ch.harmen.echo.graphql.endpoint.EndpointDtoToEndpointEdgeDtoTransformer;
-import ch.harmen.echo.graphql.endpoint.EndpointToEndpointDtoTransformer;
+import ch.harmen.echo.graphql.common.StringToCursorConverter;
 import ch.harmen.echo.user.CurrentUserContextSupplier;
 import java.util.Objects;
 import org.springframework.graphql.data.method.annotation.Arguments;
@@ -21,32 +19,33 @@ import reactor.core.publisher.Mono;
 @SchemaMapping(typeName = "UserDto")
 class OwnerResolver {
 
-  public static final int DEFAULT_FIRST = 100;
+  public static final int ENDPOINTS_DEFAULT_FIRST = 100;
+
   private final CurrentUserContextSupplier currentUserContextSupplier;
   private final EndpointService endpointService;
-  private final EndpointToEndpointDtoTransformer endpointToEndpointDtoTransformer;
-  private final EndpointDtoToEndpointEdgeDtoTransformer endpointDtoToEndpointEdgeDtoTransformer;
+  private final EndpointToOwnerEndpointDtoTransformer endpointToOwnerEndpointDtoTransformer;
+  private final OwnerEndpointDtoToOwnerEndpointEdgeDtoTransformer ownerEndpointDtoToOwnerEndpointEdgeDtoTransformer;
   private final PageInfoDtoFactory pageInfoDtoFactory;
-  private final EndpointCursorConverter endpointCursorConverter;
+  private final StringToCursorConverter stringToCursorConverter;
 
   OwnerResolver(
-    CurrentUserContextSupplier currentUserContextSupplier,
-    EndpointService endpointService,
-    EndpointToEndpointDtoTransformer endpointToEndpointDtoTransformer,
-    EndpointDtoToEndpointEdgeDtoTransformer endpointDtoToEndpointEdgeDtoTransformer,
-    PageInfoDtoFactory pageInfoDtoFactory,
-    EndpointCursorConverter endpointCursorConverter
+    final CurrentUserContextSupplier currentUserContextSupplier,
+    final EndpointService endpointService,
+    final EndpointToOwnerEndpointDtoTransformer endpointToOwnerEndpointDtoTransformer,
+    final OwnerEndpointDtoToOwnerEndpointEdgeDtoTransformer ownerEndpointDtoToOwnerEndpointEdgeDtoTransformer,
+    final PageInfoDtoFactory pageInfoDtoFactory,
+    final StringToCursorConverter stringToCursorConverter
   ) {
     this.currentUserContextSupplier =
       Objects.requireNonNull(currentUserContextSupplier);
     this.endpointService = Objects.requireNonNull(endpointService);
-    this.endpointToEndpointDtoTransformer =
-      Objects.requireNonNull(endpointToEndpointDtoTransformer);
-    this.endpointDtoToEndpointEdgeDtoTransformer =
-      Objects.requireNonNull(endpointDtoToEndpointEdgeDtoTransformer);
+    this.endpointToOwnerEndpointDtoTransformer =
+      Objects.requireNonNull(endpointToOwnerEndpointDtoTransformer);
+    this.ownerEndpointDtoToOwnerEndpointEdgeDtoTransformer =
+      Objects.requireNonNull(ownerEndpointDtoToOwnerEndpointEdgeDtoTransformer);
     this.pageInfoDtoFactory = Objects.requireNonNull(pageInfoDtoFactory);
-    this.endpointCursorConverter =
-      Objects.requireNonNull(endpointCursorConverter);
+    this.stringToCursorConverter =
+      Objects.requireNonNull(stringToCursorConverter);
   }
 
   @QueryMapping
@@ -61,6 +60,9 @@ class OwnerResolver {
     final UserDto owner,
     @Arguments final PagingDto paging
   ) {
+    Objects.requireNonNull(owner);
+    Objects.requireNonNull(paging);
+
     if (paging.first().isPresent()) {
       return findFirstEndpoints(
         owner,
@@ -82,7 +84,11 @@ class OwnerResolver {
     } else {
       return findFirstEndpoints(
         owner,
-        new ForwardPagingDto(paging.before(), paging.after(), 100)
+        new ForwardPagingDto(
+          paging.before(),
+          paging.after(),
+          ENDPOINTS_DEFAULT_FIRST
+        )
       );
     }
   }
@@ -96,13 +102,11 @@ class OwnerResolver {
         forwardPaging.first() + 1,
         forwardPaging
           .before()
-          .map(this.endpointCursorConverter::cursorToEndpointId),
-        forwardPaging
-          .after()
-          .map(this.endpointCursorConverter::cursorToEndpointId)
+          .map(this.stringToCursorConverter::cursorToString),
+        forwardPaging.after().map(this.stringToCursorConverter::cursorToString)
       )
-      .map(this.endpointToEndpointDtoTransformer)
-      .map(this.endpointDtoToEndpointEdgeDtoTransformer)
+      .map(this.endpointToOwnerEndpointDtoTransformer)
+      .map(this.ownerEndpointDtoToOwnerEndpointEdgeDtoTransformer)
       .collectList()
       .map(edges -> {
         final var hasNextPage = edges.size() > forwardPaging.first();
@@ -126,13 +130,11 @@ class OwnerResolver {
         backwardPaging.last() + 1,
         backwardPaging
           .before()
-          .map(this.endpointCursorConverter::cursorToEndpointId),
-        backwardPaging
-          .after()
-          .map(this.endpointCursorConverter::cursorToEndpointId)
+          .map(this.stringToCursorConverter::cursorToString),
+        backwardPaging.after().map(this.stringToCursorConverter::cursorToString)
       )
-      .map(this.endpointToEndpointDtoTransformer)
-      .map(this.endpointDtoToEndpointEdgeDtoTransformer)
+      .map(this.endpointToOwnerEndpointDtoTransformer)
+      .map(this.ownerEndpointDtoToOwnerEndpointEdgeDtoTransformer)
       .collectList()
       .map(edges -> {
         final var hasPreviousPage = edges.size() > backwardPaging.last();

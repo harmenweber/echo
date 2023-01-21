@@ -1,8 +1,10 @@
 package ch.harmen.echo.request;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -114,5 +116,99 @@ class RequestRepository {
       .filter(request -> Objects.equals(request.id(), id))
       .next()
       .switchIfEmpty(createRequestNotFoundError(endpointId, id));
+  }
+
+  Flux<Request> findFirstByEndpoint(
+    final String endpointId,
+    final int first,
+    final Optional<ReceiveTimeAndId> before,
+    final Optional<ReceiveTimeAndId> after
+  ) {
+    return Mono
+      .just(endpointId)
+      .mapNotNull(this.requestsByEndpoint::get)
+      .flatMapMany(requestList ->
+        Flux
+          .fromIterable(requestList.getRequests())
+          .filter(isBefore(before))
+          .filter(isAfter(after))
+          .sort(Request.COMPARATOR)
+          .take(first)
+      );
+  }
+
+  Flux<Request> findLastByEndpoint(
+    final String endpointId,
+    final int last,
+    final Optional<ReceiveTimeAndId> before,
+    final Optional<ReceiveTimeAndId> after
+  ) {
+    return Mono
+      .just(endpointId)
+      .mapNotNull(this.requestsByEndpoint::get)
+      .flatMapMany(requestList ->
+        Flux
+          .fromIterable(requestList.getRequests())
+          .filter(isBefore(before))
+          .filter(isAfter(after))
+          .sort(Request.COMPARATOR)
+          .takeLast(last)
+      );
+  }
+
+  private static Predicate<Request> isBefore(
+    final Optional<ReceiveTimeAndId> optionalReceiveTimeAndId
+  ) {
+    return request -> requestIsBefore(request, optionalReceiveTimeAndId);
+  }
+
+  private static boolean requestIsBefore(
+    final Request request,
+    final Optional<ReceiveTimeAndId> optionalReceiveTimeAndId
+  ) {
+    return optionalReceiveTimeAndId
+      .map(receiveTimeAndId -> requestIsBefore(request, receiveTimeAndId))
+      .orElse(true);
+  }
+
+  private static boolean requestIsBefore(
+    final Request request,
+    final ReceiveTimeAndId receiveTimeAndId
+  ) {
+    return (
+      ReceiveTimeAndId.COMPARATOR.compare(
+        new ReceiveTimeAndId(request.receiveTime(), request.id()),
+        receiveTimeAndId
+      ) <
+      0
+    );
+  }
+
+  private static Predicate<Request> isAfter(
+    final Optional<ReceiveTimeAndId> optionalReceiveTimeAndId
+  ) {
+    return request -> requestIsAfter(request, optionalReceiveTimeAndId);
+  }
+
+  private static boolean requestIsAfter(
+    final Request request,
+    final Optional<ReceiveTimeAndId> optionalReceiveTimeAndId
+  ) {
+    return optionalReceiveTimeAndId
+      .map(receiveTimeAndId -> requestIsAfter(request, receiveTimeAndId))
+      .orElse(true);
+  }
+
+  private static boolean requestIsAfter(
+    final Request request,
+    final ReceiveTimeAndId receiveTimeAndId
+  ) {
+    return (
+      ReceiveTimeAndId.COMPARATOR.compare(
+        new ReceiveTimeAndId(request.receiveTime(), request.id()),
+        receiveTimeAndId
+      ) >
+      0
+    );
   }
 }

@@ -83,7 +83,7 @@ class EndpointRepository {
           .fromIterable(endpoints.values())
           .filter(isBefore(before))
           .filter(isAfter(after))
-          .sort(Comparator.comparing(Endpoint::id))
+          .sort(Endpoint.COMPARATOR)
           .take(first)
       );
   }

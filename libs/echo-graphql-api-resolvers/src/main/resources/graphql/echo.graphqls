@@ -3,6 +3,10 @@ type Query {
   endpoint(id: ID!): EndpointDto
 }
 
+type Subscription {
+  requestCreated(endpointId: ID!): EndpointRequestDto
+}
+
 type UserDto {
   id: ID!
   endpoints(

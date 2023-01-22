@@ -1,5 +1,6 @@
 package ch.harmen.echo.graphql.endpoint;
 
+import ch.harmen.echo.endpoint.EndpointNotFoundException;
 import ch.harmen.echo.endpoint.EndpointService;
 import ch.harmen.echo.graphql.common.BackwardPagingDto;
 import ch.harmen.echo.graphql.common.Edges;
@@ -13,7 +14,9 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.Arguments;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.graphql.data.method.annotation.SubscriptionMapping;
 import org.springframework.stereotype.Controller;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Controller
@@ -168,5 +171,21 @@ class EndpointResolver {
             )
         );
       });
+  }
+
+  @SubscriptionMapping
+  Flux<EndpointRequestDto> requestCreated(@Argument String endpointId) {
+    Objects.requireNonNull(endpointId);
+    final String owner = this.currentUserContextSupplier.get().id();
+    return this.endpointService.findByOwnerAndId(owner, endpointId)
+      .switchIfEmpty(
+        Mono.error(() -> new EndpointNotFoundException(owner, endpointId))
+      )
+      .thenMany(
+        this.requestService.subscribeToRequestCreatedEventsByEndpointId(
+            endpointId
+          )
+          .map(this.requestToEndpointRequestDtoTransformer)
+      );
   }
 }

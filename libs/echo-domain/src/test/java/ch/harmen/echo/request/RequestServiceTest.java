@@ -15,12 +15,20 @@ import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 final class RequestServiceTest {
 
+  private final Sinks.Many<Request> requestSink = Sinks
+    .many()
+    .multicast()
+    .onBackpressureBuffer();
+  private final Flux<Request> requestFlux = this.requestSink.asFlux();
   private final RequestService requestService = new RequestService(
-    new RequestRepository()
+    new RequestRepository(),
+    this.requestSink,
+    this.requestFlux
   );
 
   private final RequestTestFixture requestTestFixture = new RequestTestFixture();
@@ -42,6 +50,12 @@ final class RequestServiceTest {
       .create(createdAndLoadedRequest)
       .expectNext(request)
       .verifyComplete();
+
+    StepVerifier
+      .create(this.requestFlux)
+      .expectNext(request)
+      .thenCancel()
+      .verify();
   }
 
   @Test

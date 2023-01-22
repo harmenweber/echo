@@ -5,18 +5,29 @@ import java.util.Optional;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.core.publisher.Sinks.Many;
 
 public class RequestService {
 
   private final RequestRepository requestRepository;
+  private final Sinks.Many<Request> requestSink;
+  private final Flux<Request> requestFlux;
 
-  public RequestService(final RequestRepository requestRepository) {
+  public RequestService(
+    final RequestRepository requestRepository,
+    final Many<Request> requestSink,
+    final Flux<Request> requestFlux
+  ) {
     this.requestRepository = Objects.requireNonNull(requestRepository);
+    this.requestSink = Objects.requireNonNull(requestSink);
+    this.requestFlux = Objects.requireNonNull(requestFlux);
   }
 
   public Mono<Request> create(final Request request) {
     Objects.requireNonNull(request);
-    return this.requestRepository.create(request);
+    return this.requestRepository.create(request)
+      .doOnNext(requestSink::tryEmitNext);
   }
 
   public Mono<Void> delete(final Request request) {
@@ -120,5 +131,14 @@ public class RequestService {
       last >= 1,
       () -> "Parameter last must be >= 1 but was %d".formatted(last)
     );
+  }
+
+  public Flux<Request> subscribeToRequestCreatedEventsByEndpointId(
+    final String endpointId
+  ) {
+    Objects.requireNonNull(endpointId);
+    return this.requestFlux.filter(request ->
+        endpointId.equals(request.endpointId())
+      );
   }
 }

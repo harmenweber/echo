@@ -11,13 +11,15 @@ import reactor.core.publisher.Mono;
 
 class EndpointRepository {
 
+  private final ConcurrentMap<String, Endpoint> endpointsById = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, ConcurrentMap<String, Endpoint>> endpointsByOwner = new ConcurrentHashMap<>();
 
   Mono<Endpoint> create(final Endpoint endpoint) {
-    return Mono.just(endpoint).doOnNext(this::addEndpointToMap);
+    return Mono.just(endpoint).doOnNext(this::addEndpointToMaps);
   }
 
-  private void addEndpointToMap(final Endpoint endpoint) {
+  private void addEndpointToMaps(final Endpoint endpoint) {
+    this.endpointsById.put(endpoint.id(), endpoint);
     final String owner = endpoint.owner();
     this.endpointsByOwner.putIfAbsent(owner, new ConcurrentHashMap<>());
     this.endpointsByOwner.get(owner).put(endpoint.id(), endpoint);
@@ -26,7 +28,7 @@ class EndpointRepository {
   Mono<Void> delete(final Endpoint endpoint) {
     return Mono
       .just(endpoint)
-      .mapNotNull(this::removeEndpointFromMap)
+      .mapNotNull(this::removeEndpointFromMaps)
       .switchIfEmpty(
         createEndpointNotFoundError(endpoint.owner(), endpoint.id())
       )
@@ -34,12 +36,13 @@ class EndpointRepository {
   }
 
   /**
-   * Removes the endpoint from the map.
+   * Removes the endpoint from the maps.
    *
    * @param endpoint The endpoint that must be removed.
-   * @return The removed endpoint, or {@code null} if the endpoint was not in the map.
+   * @return The removed endpoint, or {@code null} if the endpoint was not in the maps.
    */
-  private Endpoint removeEndpointFromMap(final Endpoint endpoint) {
+  private Endpoint removeEndpointFromMaps(final Endpoint endpoint) {
+    this.endpointsById.remove(endpoint.id());
     final String owner = endpoint.owner();
     this.endpointsByOwner.putIfAbsent(owner, new ConcurrentHashMap<>());
     return this.endpointsByOwner.get(owner).remove(endpoint.id());
@@ -50,6 +53,10 @@ class EndpointRepository {
     final String id
   ) {
     return Mono.error(() -> new EndpointNotFoundException(owner, id));
+  }
+
+  private static <T> Mono<T> createEndpointNotFoundError(final String id) {
+    return Mono.error(() -> new EndpointNotFoundException(id));
   }
 
   Flux<Endpoint> findByOwner(
@@ -160,6 +167,13 @@ class EndpointRepository {
       .mapNotNull(this.endpointsByOwner::get)
       .mapNotNull(endpoints -> endpoints.get(id))
       .switchIfEmpty(createEndpointNotFoundError(owner, id));
+  }
+
+  Mono<Endpoint> getById(final String id) {
+    return Mono
+      .just(id)
+      .mapNotNull(this.endpointsById::get)
+      .switchIfEmpty(createEndpointNotFoundError(id));
   }
 
   Mono<Integer> countByOwner(final String owner) {

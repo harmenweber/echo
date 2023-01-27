@@ -39,12 +39,17 @@ public class RequestRestControllerTest {
 
   @Test
   void createRequest() {
+    final EndpointDto endpoint = this.endpointRestClient.create();
     final HttpHeaders httpHeaders = getRandomHttpHeaders();
     final String requestBody = UUID.randomUUID().toString();
 
-    final EndpointDto endpoint = this.endpointRestClient.create();
     final String requestId =
-      this.requestRestClient.create(endpoint.id(), httpHeaders, requestBody)
+      this.requestRestClient.create(
+          endpoint.id(),
+          endpoint.apiKey(),
+          httpHeaders,
+          requestBody
+        )
         .id();
 
     final RequestDto request =
@@ -68,10 +73,96 @@ public class RequestRestControllerTest {
   }
 
   @Test
+  void createRequest_returnsNotFound_ifEndpointDoesNotExist() {
+    final String endpointId = UUID.randomUUID().toString();
+    final String apiKey = UUID.randomUUID().toString();
+    final String requestId = UUID.randomUUID().toString();
+
+    final EntityExchangeResult<String[]> response =
+      this.requestRestClient.create(
+          String[].class,
+          endpointId,
+          apiKey,
+          getRandomHttpHeaders(),
+          requestId
+        );
+
+    assertAll(
+      () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND),
+      () ->
+        assertThat(response.getResponseBody())
+          .contains("Endpoint %s not found.".formatted(endpointId))
+    );
+  }
+
+  @Test
+  void createRequest_returnsUnauthorized_ifApiKeyIsNotProvided() {
+    final EndpointDto endpoint = this.endpointRestClient.create();
+    final HttpHeaders httpHeaders = getRandomHttpHeaders();
+    final String requestBody = UUID.randomUUID().toString();
+
+    final EntityExchangeResult<String[]> response =
+      this.requestRestClient.create(
+          String[].class,
+          endpoint.id(),
+          null,
+          httpHeaders,
+          requestBody
+        );
+
+    assertAll(
+      () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED),
+      () ->
+        assertThat(response.getResponseBody())
+          .contains(
+            "API key %s incorrect for endpoint %s.".formatted(
+                null,
+                endpoint.id()
+              )
+          )
+    );
+  }
+
+  @Test
+  void createRequest_returnsUnauthorized_ifApiKeyIsIncorrect() {
+    final EndpointDto endpoint = this.endpointRestClient.create();
+    final HttpHeaders httpHeaders = getRandomHttpHeaders();
+    final String requestBody = UUID.randomUUID().toString();
+
+    final String incorrectApiKey = UUID.randomUUID().toString();
+    final EntityExchangeResult<String[]> response =
+      this.requestRestClient.create(
+          String[].class,
+          endpoint.id(),
+          incorrectApiKey,
+          httpHeaders,
+          requestBody
+        );
+
+    assertAll(
+      () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED),
+      () ->
+        assertThat(response.getResponseBody())
+          .contains(
+            "API key %s incorrect for endpoint %s.".formatted(
+                incorrectApiKey,
+                endpoint.id()
+              )
+          )
+    );
+  }
+
+  @Test
   void getRequest() {
     final EndpointDto endpoint = this.endpointRestClient.create();
+
     final String requestId =
-      this.requestRestClient.create(endpoint.id(), UUID.randomUUID().toString())
+      this.requestRestClient.create(
+          endpoint.id(),
+          endpoint.apiKey(),
+          getRandomHttpHeaders(),
+          UUID.randomUUID().toString()
+        )
         .id();
 
     final RequestDto request =
@@ -120,8 +211,15 @@ public class RequestRestControllerTest {
   @Test
   void delete() {
     final EndpointDto endpoint = this.endpointRestClient.create();
+    final HttpHeaders httpHeaders = getRandomHttpHeaders();
+
     final String requestId =
-      this.requestRestClient.create(endpoint.id(), UUID.randomUUID().toString())
+      this.requestRestClient.create(
+          endpoint.id(),
+          endpoint.apiKey(),
+          httpHeaders,
+          UUID.randomUUID().toString()
+        )
         .id();
 
     final EntityExchangeResult<RequestDto> getRequestBeforeDeleteResponse =
@@ -186,11 +284,14 @@ public class RequestRestControllerTest {
   void getRequests_returnsRequestsOrderedByReceiveTimeDescending() {
     // Create an endpoint.
     final EndpointDto endpoint = this.endpointRestClient.create();
+    final HttpHeaders httpHeaders = getRandomHttpHeaders();
 
     // Create some requests.
     for (int i = 0; i < RequestConstants.MAX_REQUESTS_PER_ENDPOINT; i++) {
       this.requestRestClient.create(
           endpoint.id(),
+          endpoint.apiKey(),
+          httpHeaders,
           UUID.randomUUID().toString()
         );
     }
@@ -219,11 +320,14 @@ public class RequestRestControllerTest {
   void getRequests_respectsPageSize() {
     // Create an endpoint.
     final EndpointDto endpoint = this.endpointRestClient.create();
+    final HttpHeaders httpHeaders = getRandomHttpHeaders();
 
     // Create the maximum number of requests for that endpoint.
     for (int i = 0; i < RequestConstants.MAX_REQUESTS_PER_ENDPOINT; i++) {
       this.requestRestClient.create(
           endpoint.id(),
+          endpoint.apiKey(),
+          httpHeaders,
           UUID.randomUUID().toString()
         );
     }
@@ -252,11 +356,14 @@ public class RequestRestControllerTest {
   void getRequests_respectsPage() {
     // Create an endpoint.
     final EndpointDto endpoint = this.endpointRestClient.create();
+    final HttpHeaders httpHeaders = getRandomHttpHeaders();
 
     // Create some requests.
     for (int i = 0; i < RequestConstants.MAX_REQUESTS_PER_ENDPOINT; i++) {
       this.requestRestClient.create(
           endpoint.id(),
+          endpoint.apiKey(),
+          httpHeaders,
           UUID.randomUUID().toString()
         );
     }
@@ -431,6 +538,25 @@ public class RequestRestControllerTest {
     );
   }
 
+  @Test
+  void getRequests_returnsNotFound_ifEndpointDoesNotExist() {
+    final String endpointId = UUID.randomUUID().toString();
+    final EntityExchangeResult<String[]> response =
+      this.requestRestClient.get(
+          String[].class,
+          endpointId,
+          Optional.empty(),
+          Optional.of(RequestConstants.MAX_REQUESTS_PER_ENDPOINT)
+        );
+
+    assertAll(
+      () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND),
+      () ->
+        assertThat(response.getResponseBody())
+          .contains("Endpoint %s not found.".formatted(endpointId))
+    );
+  }
+
   private static HttpHeaders getRandomHttpHeaders() {
     final HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.addAll(
@@ -440,7 +566,7 @@ public class RequestRestControllerTest {
     return httpHeaders;
   }
 
-  static String decodeBase64ToString(final String base64EncodedBody) {
+  private static String decodeBase64ToString(final String base64EncodedBody) {
     return Optional
       .ofNullable(base64EncodedBody)
       .map(Base64Utils::decodeFromString)

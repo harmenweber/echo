@@ -142,4 +142,9 @@ public class EndpointService {
     Objects.requireNonNull(id);
     return this.endpointRepository.getByOwnerAndId(owner, id);
   }
+
+  public Mono<Endpoint> getById(final String id) {
+    Objects.requireNonNull(id);
+    return this.endpointRepository.getById(id);
+  }
 }

@@ -17,6 +17,7 @@ public final class RequestConstants {
     "/{" +
     RequestConstants.ID_PATH_VARIABLE +
     "}";
+  public static final String API_KEY_HEADER_NAME = "x-api-key";
 
   private RequestConstants() {}
 }

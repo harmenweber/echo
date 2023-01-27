@@ -13,6 +13,12 @@ public class EndpointNotFoundException extends RuntimeException {
     this.id = Objects.requireNonNull(id);
   }
 
+  public EndpointNotFoundException(final String id) {
+    super("Endpoint %s not found.".formatted(id));
+    this.id = Objects.requireNonNull(id);
+    this.owner = null;
+  }
+
   public String getOwner() {
     return owner;
   }

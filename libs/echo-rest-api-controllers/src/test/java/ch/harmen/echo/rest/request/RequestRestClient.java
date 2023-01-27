@@ -1,8 +1,6 @@
 package ch.harmen.echo.rest.request;
 
 import ch.harmen.echo.request.RequestConstants;
-import ch.harmen.echo.rest.request.CreateRequestResultDto;
-import ch.harmen.echo.rest.request.RequestDto;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,13 +21,24 @@ public class RequestRestClient {
 
   public CreateRequestResultDto create(
     final String endpointId,
+    final String apiKey,
+    final HttpHeaders headers,
     final String requestBody
   ) {
-    return create(endpointId, HttpHeaders.EMPTY, requestBody);
+    return create(
+      CreateRequestResultDto.class,
+      endpointId,
+      apiKey,
+      headers,
+      requestBody
+    )
+      .getResponseBody();
   }
 
-  public CreateRequestResultDto create(
+  public <T> EntityExchangeResult<T> create(
+    final Class<T> expectedResponseBodyType,
     final String endpointId,
+    final String apiKey,
     final HttpHeaders headers,
     final String requestBody
   ) {
@@ -39,26 +48,24 @@ public class RequestRestClient {
         Map.of(RequestConstants.ENDPOINT_ID_PATH_VARIABLE, endpointId)
       )
       .headers(it -> it.addAll(headers))
+      .headers(it -> it.add(RequestConstants.API_KEY_HEADER_NAME, apiKey))
       .bodyValue(requestBody)
       .exchange()
-      .expectStatus()
-      .isCreated()
-      .expectBody(CreateRequestResultDto.class)
-      .returnResult()
-      .getResponseBody();
+      .expectBody(expectedResponseBodyType)
+      .returnResult();
   }
 
   public EntityExchangeResult<RequestDto> get(
     final String endpointId,
-    final String id
+    final String requestId
   ) {
-    return get(RequestDto.class, endpointId, id);
+    return get(RequestDto.class, endpointId, requestId);
   }
 
   public <T> EntityExchangeResult<T> get(
     final Class<T> expectedResponseBodyType,
     final String endpointId,
-    final String id
+    final String requestId
   ) {
     return this.webTestClient.get()
       .uri(
@@ -67,7 +74,7 @@ public class RequestRestClient {
           RequestConstants.ENDPOINT_ID_PATH_VARIABLE,
           endpointId,
           RequestConstants.ID_PATH_VARIABLE,
-          id
+          requestId
         )
       )
       .exchange()
@@ -75,14 +82,17 @@ public class RequestRestClient {
       .returnResult();
   }
 
-  public EntityExchangeResult<Void> delete(final String endpointId, String id) {
-    return delete(Void.class, endpointId, id);
+  public EntityExchangeResult<Void> delete(
+    final String endpointId,
+    final String requestId
+  ) {
+    return delete(Void.class, endpointId, requestId);
   }
 
   public <T> EntityExchangeResult<T> delete(
     final Class<T> expectedResponseBodyType,
     final String endpointId,
-    String id
+    final String id
   ) {
     return this.webTestClient.delete()
       .uri(

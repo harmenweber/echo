@@ -1,6 +1,7 @@
 package ch.harmen.echo.rest.request;
 
 import ch.harmen.echo.endpoint.EndpointService;
+import ch.harmen.echo.request.ApiKeyIncorrectException;
 import ch.harmen.echo.request.RequestConstants;
 import ch.harmen.echo.request.RequestService;
 import ch.harmen.echo.user.CurrentUserContextSupplier;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -60,11 +62,16 @@ class RequestRestController {
     @PathVariable(
       RequestConstants.ENDPOINT_ID_PATH_VARIABLE
     ) final String endpointId,
+    @RequestHeader(
+      name = RequestConstants.API_KEY_HEADER_NAME,
+      required = false
+    ) final String apiKey,
     final RequestEntity<byte[]> request
   ) {
-    return this.endpointService.getByOwnerAndId(
-        this.currentUserContextSupplier.get().id(),
-        endpointId
+    return this.endpointService.getById(endpointId)
+      .filter(endpoint -> endpoint.apiKey().equals(apiKey))
+      .switchIfEmpty(
+        Mono.error(new ApiKeyIncorrectException(endpointId, apiKey))
       )
       .map(endpoint ->
         this.requestEntityToRequestTransformer.apply(endpoint.id(), request)
